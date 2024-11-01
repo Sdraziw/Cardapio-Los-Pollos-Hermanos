@@ -5,6 +5,7 @@
 ●	O logout redireciona para a tela de login, descartando dados.
 */
 import 'package:flutter/material.dart';
+import 'package:preojeto/controller/login_controller.dart';
 import 'package:preojeto/model/user_model.dart'; // Importa a classe Usuario
 import 'package:preojeto/services/pedido_service.dart'; // Importa o PedidoService
 import 'package:shared_preferences/shared_preferences.dart'; // Para salvar localmente o estado de "Lembre-se de mim"
@@ -24,6 +25,8 @@ class _LoginViewState extends State<LoginView> {
 
   final txtValor1 = TextEditingController();
   final txtValor2 = TextEditingController();
+  final txtEmail = TextEditingController();
+  final txtSenha = TextEditingController();
 
   bool _rememberMe = false;
   bool _obscureText = true;
@@ -263,9 +266,9 @@ class _LoginViewState extends State<LoginView> {
                           String senha = txtValor2.text;
 
                           // Lógica de login
-                          if ((emailOuUsuario == 'admin@email.com') ||
-                              (emailOuUsuario == 'teste@teste.com') &&
-                                  senha == '123456') {
+                          if (((emailOuUsuario == 'admin@email.com') ||
+                                  (emailOuUsuario == 'teste@teste.com')) &&
+                              senha == '123456') {
                             _saveRememberMe(); // Salva as credenciais
                             Navigator.pushNamed(context, 'menu');
                           } else {
@@ -294,10 +297,10 @@ class _LoginViewState extends State<LoginView> {
                               );
                               _saveRememberMe(); // Salva as credenciais
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Login ou senha inválidos'),
-                                ),
+                              LoginController().login(
+                                context,
+                                txtEmail.text,
+                                txtSenha.text,
                               );
                             }
                           }

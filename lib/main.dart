@@ -1,5 +1,7 @@
 import 'package:device_preview/device_preview.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:preojeto/firebase_options.dart';
 //import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart'; // Certifique-se de importar o provider
 
@@ -22,7 +24,10 @@ import 'package:preojeto/services/message_notifier.dart';
 import 'package:preojeto/services/pedido_service.dart';
 import 'package:preojeto/widgets/aurora_animation.dart'; // Importa a animação da aurora
 
-void main() {
+Future<void> main() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   setupservice(); // Registrar o serviço de pedidos antes de executar o app
   runApp(
     //home: AuroraAnimation(), // Usa a animação da aurora como tela inicial
