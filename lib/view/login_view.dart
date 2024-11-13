@@ -6,8 +6,6 @@
 */
 import 'package:flutter/material.dart';
 import 'package:preojeto/controller/login_controller.dart';
-import 'package:preojeto/model/user_model.dart'; // Importa a classe Usuario
-import 'package:preojeto/services/pedido_service.dart'; // Importa o PedidoService
 import 'package:shared_preferences/shared_preferences.dart'; // Para salvar localmente o estado de "Lembre-se de mim"
 import 'dart:math'; // Para gerar cores aleatórias
 
@@ -143,12 +141,6 @@ class _LoginViewState extends State<LoginView> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Por favor, insira seu e-mail ou usuário';
-                        } else if (!RegExp(
-                                    r"^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                                .hasMatch(value) &&
-                            !Usuario.usuarios
-                                .any((user) => user.nome == value)) {
-                          return 'Formato de e-mail ou usuário inválido';
                         }
                         return null;
                       },
@@ -262,48 +254,12 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
-                          String emailOuUsuario = txtValor1.text;
-                          String senha = txtValor2.text;
-
-                          // Lógica de login
-                          if (((emailOuUsuario == 'admin@email.com') ||
-                                  (emailOuUsuario == 'teste@teste.com')) &&
-                              senha == '123456') {
-                            _saveRememberMe(); // Salva as credenciais
-                            Navigator.pushNamed(context, 'menu');
-                          } else {
-                            Usuario? usuario = Usuario.usuarios.firstWhere(
-                              (user) =>
-                                  (user.email == emailOuUsuario ||
-                                      user.nome == emailOuUsuario) &&
-                                  user.senha == senha,
-                              orElse: () =>
-                                  Usuario(nome: '', email: '', senha: ''),
-                            );
-
-                            if (usuario.nome.isNotEmpty) {
-                              // Gerar número do pedido
-                              String numeroPedido =
-                                  await PedidoService().gerarNumeroPedido();
-
-                              // Passar nome e número do pedido para a tela de pagamento
-                              Navigator.pushNamed(
-                                context,
-                                'menu',
-                                arguments: {
-                                  'nome': usuario.nome,
-                                  'numeroPedido': numeroPedido,
-                                },
-                              );
-                              _saveRememberMe(); // Salva as credenciais
-                            } else {
-                              LoginController().login(
-                                context,
-                                txtEmail.text,
-                                txtSenha.text,
-                              );
-                            }
-                          }
+                          LoginController().login(
+                            context,
+                            txtValor1.text,
+                            txtValor2.text,
+                          );
+                          _saveRememberMe(); // Salva as credenciais
                         }
                       },
                       child: const Text('Login'),

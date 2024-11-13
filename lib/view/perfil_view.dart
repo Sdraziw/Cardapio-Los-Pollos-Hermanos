@@ -1,6 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_network/image_network.dart';
-import 'package:preojeto/model/user_model.dart'; // Certifique-se de que esse caminho está correto
+import 'package:preojeto/controller/login_controller.dart';
 
 class PerfilView extends StatefulWidget {
   const PerfilView({super.key});
@@ -10,33 +11,20 @@ class PerfilView extends StatefulWidget {
 }
 
 class _PerfilViewState extends State<PerfilView> {
-  var nomeAtual = '';
-  var emailAtual = '';
-  var senhaAtual = '';
-
-  // Função que verifica se há usuários e preenche com dados de teste se necessário
-  void checaUser() {
-    if (Usuario.usuarios.isNotEmpty) {
-      nomeAtual = Usuario.usuarios[0].nome;
-      emailAtual = Usuario.usuarios[0].email;
-      senhaAtual = Usuario.usuarios[0].senha;
-    }
-  }
+  final LoginController _controller = LoginController();
+  String? email = FirebaseAuth.instance.currentUser?.email;
 
   bool obscureText_ = true;
-  int _currentIndex = 2; // Para controlar a navegação
+  int _currentIndex = 2;
 
-  // Função para alternar entre diferentes telas da BottomNavigationBar
   void _onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
 
     if (index == 0) {
-      // Lógica para a tela de Menu
       Navigator.pushReplacementNamed(context, 'menu');
     } else if (index == 1) {
-      // Navegar para a tela de categorias
       Navigator.pushReplacementNamed(context, 'historico');
     } else if (index == 2) {
       Navigator.pushReplacementNamed(context, 'perfil');
@@ -44,17 +32,11 @@ class _PerfilViewState extends State<PerfilView> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    checaUser(); // Chama a função para verificar e preencher os dados do usuário
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Remove o botão de voltar
+        automaticallyImplyLeading: false,
         backgroundColor: Color(0xFFFFD600),
         title: Column(
           children: [
@@ -80,8 +62,7 @@ class _PerfilViewState extends State<PerfilView> {
               height: 150,
               width: 150,
               child: ImageNetwork(
-                image:
-                    'lib/images/heisenberg.jpeg', // Certifique-se de que essa imagem existe
+                image: 'lib/images/heisenberg.jpeg',
                 height: 150,
                 width: 150,
                 borderRadius: BorderRadius.circular(100),
@@ -93,79 +74,83 @@ class _PerfilViewState extends State<PerfilView> {
               ),
             ),
             const SizedBox(height: 40),
-            TextFormField(
-              style: const TextStyle(
-                fontSize: 18,
-                color: Colors.black,
-              ),
-              readOnly: true,
-              initialValue: nomeAtual,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                labelText: 'Nome',
-                labelStyle: const TextStyle(
-                  color: Colors.black,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            FutureBuilder<String>(
+              future: _controller.usuarioLogadoNome(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Erro ao carregar o nome');
+                } else {
+                  return TextFormField(
+                    style: const TextStyle(fontSize: 18, color: Colors.black),
+                    readOnly: true,
+                    initialValue: snapshot.data ?? '',
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      labelText: 'Nome',
+                      labelStyle: const TextStyle(color: Colors.black),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 20),
             TextFormField(
-              style: const TextStyle(
-                fontSize: 18,
-                color: Colors.black,
-              ),
+              style: const TextStyle(fontSize: 18, color: Colors.black),
               readOnly: true,
-              initialValue: emailAtual,
+              initialValue: email ?? '',
               decoration: InputDecoration(
                 labelText: 'E-mail',
                 filled: true,
                 fillColor: Colors.white,
-                labelStyle: const TextStyle(
-                  color: Colors.black,
-                ),
+                labelStyle: const TextStyle(color: Colors.black),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            TextFormField(
-              style: const TextStyle(
-                fontSize: 18,
-                color: Colors.black,
-              ),
-              readOnly: true,
-              initialValue: senhaAtual,
-              obscureText:
-                  obscureText_, // Controla se a senha está oculta ou visível
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                labelText: 'Senha',
-                labelStyle: const TextStyle(
-                  color: Colors.black,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                // O suffixIcon deve estar dentro do InputDecoration
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    obscureText_ ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.black,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      obscureText_ =
-                          !obscureText_; // Alterna entre visível e oculto
-                    });
-                  },
-                ),
-              ),
+            FutureBuilder<String>(
+              future: _controller.usuarioLogadoSenha(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Erro ao carregar a senha');
+                } else {
+                  return TextFormField(
+                    style: const TextStyle(fontSize: 18, color: Colors.black),
+                    readOnly: true,
+                    initialValue: '••••••••',
+                    obscureText: obscureText_,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      labelText: 'Senha',
+                      labelStyle: const TextStyle(color: Colors.black),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscureText_ ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            obscureText_ = !obscureText_;
+                          });
+                        },
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 40),
             ElevatedButton(
@@ -179,12 +164,10 @@ class _PerfilViewState extends State<PerfilView> {
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text(
-                        'Deslogando...\nDirecionado para a página de Login!'),
+                    content: Text('Deslogando...\nDirecionado para a página de Login!'),
                   ),
                 );
 
-                // Após o logout, navega para a tela de login.
                 Future.delayed(const Duration(seconds: 1), () {
                   Navigator.pushReplacementNamed(context, 'splash');
                 });
@@ -208,9 +191,7 @@ class _PerfilViewState extends State<PerfilView> {
         onTap: _onTabTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long),
-              label: 'Pedidos'), //Utilizado Direto no Menu
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),

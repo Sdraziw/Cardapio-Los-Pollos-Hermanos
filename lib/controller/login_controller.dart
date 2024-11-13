@@ -57,8 +57,10 @@ class LoginController {
     }).catchError((e) {
       switch (e.code) {
         case 'invalid-email':
-          erro(context, 'O formato do email é inválido.');
+          erro(context, 'E-mail ou Senha incorretos.');
           break;
+        case 'invalid-password':
+          erro(context, 'E-mail ou Senha incorretos.');
         default:
           erro(context, 'ERRO: ${e.code.toString()}');
       }
@@ -97,7 +99,7 @@ class LoginController {
   //
   // NOME do Usuário Logado
   //
-  Future<String> usuarioLogado() async {
+  Future<String> usuarioLogadoNome() async {
     var nome = "";
     await FirebaseFirestore.instance
       .collection('usuarios')
@@ -107,5 +109,17 @@ class LoginController {
         nome = value.docs[0].data()['nome']  ?? '';
       });
     return nome;
+  }
+
+  Future<String> usuarioLogadoSenha() async {
+    var senha = "";
+    await FirebaseFirestore.instance
+      .collection('usuarios')
+      .where('uid', isEqualTo: idUsuario())
+      .get()
+      .then((value){
+        senha = value.docs[0].data()['senha']  ?? '';
+      });
+    return senha;
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:preojeto/model/user_model.dart';
+import 'package:preojeto/controller/login_controller.dart';
 
 class CadastroView extends StatefulWidget {
   const CadastroView({super.key});
@@ -204,30 +204,13 @@ class _CadastroViewState extends State<CadastroView> {
                     textStyle: const TextStyle(fontSize: 15),
                   ), // Dentro do método onPressed do botão de cadastrar em CadastroView
                   onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      // Se o formulário for válido, adiciona o usuário
-                      String nome = txtNome.text;
-                      String email = txtEmail.text;
-                      String senha = txtSenha.text;
-
-                      // Método para limpar lista de Users, 
-                      // como não estamos utilizando banco de dados, 
-                      // optamos por manter a lista mais simples.
-                      Usuario.zeraLista();
-
-                      // Adiciona o novo usuário ao vetor
-                      Usuario.adicionarUser(nome, email, senha);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Cadastro efetuado com sucesso!\nNome: $nome\nE-mail: $email!'),
-                        ),
-                      );
-                      // Navegar para a tela de menu
-                      Navigator.pushNamed(context, 'login');
-                    }
+                    LoginController().criarConta(
+                      context,
+                      txtNome.text,
+                      txtEmail.text,
+                      txtSenha.text,
+                    );
                   },
-
                   child: Text('Cadastrar'),
                 ),
               ],

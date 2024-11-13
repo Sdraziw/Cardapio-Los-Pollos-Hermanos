@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 void erro(context, String msg) {
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
+    SnackBar(
+      backgroundColor: const Color.fromARGB(255, 67, 61, 61),
       content: Text(
         msg,
         style: const TextStyle(color: Colors.white),
