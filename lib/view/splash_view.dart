@@ -3,13 +3,13 @@ import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class SplashView extends StatefulWidget {
-  const SplashView({Key? key}) : super(key: key);
+  const SplashView({super.key});
 
   @override
-  _SplashViewState createState() => _SplashViewState();
+  SplashViewState createState() => SplashViewState();
 }
 
-class _SplashViewState extends State<SplashView> {
+class SplashViewState extends State<SplashView> {
   late VideoPlayerController _videoController;
   late AudioPlayer _audioPlayer;
 
@@ -22,9 +22,18 @@ class _SplashViewState extends State<SplashView> {
     // Inicia a configuração do áudio
     _iniciarAudio();
 
+    /*// Navega para a próxima tela após a reprodução do vídeo
+    _videoController.addListener(() {
+      if (_videoController.value.position == _videoController.value.duration) {
+        Navigator.pushReplacementNamed(context, 'login');
+      }
+    });
+  }*/
+
+  
     // Navega para a próxima tela após 5 segundos
     Future.delayed(const Duration(seconds: 5), () {
-      if (_videoController.value.isInitialized) {
+      if (_videoController.value.isInitialized && mounted) {
         Navigator.pushNamed(context, 'login');
       }
     });
@@ -66,16 +75,55 @@ class _SplashViewState extends State<SplashView> {
     super.dispose();
   }
 
+  final String desertImage = 'lib/images/desert.jpg'; // Define the path to the desert image
+  final Color containerColor = Colors.black.withOpacity(1.0); // Define the container color
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: _videoController.value.isInitialized
-            ? AspectRatio(
-                aspectRatio: _videoController.value.aspectRatio,
-                child: VideoPlayer(_videoController),
-              )
-            : const CircularProgressIndicator(), // Carregador enquanto o vídeo não está pronto
+      body: Stack(
+        children: [
+          _videoController.value.isInitialized
+              ? AspectRatio(
+                  aspectRatio: _videoController.value.aspectRatio,
+                  child: VideoPlayer(_videoController),
+                )
+              : Center(child: CircularProgressIndicator()),
+          Center(
+            child: Text(
+                'Los Pollos Hermanos',
+                style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                  offset: Offset(1.5, 1.5),
+                  blurRadius: 3.0,
+                  color: Colors.black,
+                  ),
+                ],
+                ),
+            ),
+          ),
+          
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              height: 150, // Altura fixa
+              decoration: BoxDecoration(
+                color: containerColor, // Usar a cor do container
+                image: DecorationImage(
+                  image:
+                      AssetImage(desertImage), // Caminho da imagem do deserto
+                  fit: BoxFit.cover, // Preenche a largura
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

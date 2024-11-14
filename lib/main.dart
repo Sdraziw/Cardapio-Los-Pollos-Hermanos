@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:preojeto/firebase_options.dart';
 //import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart'; // Certifique-se de importar o provider
+import 'package:provider/provider.dart'; // Certifique-se de importar o provider pois ele é necessário para o uso do ChangeNotifierProvider
 
 import 'package:preojeto/view/cadastro_view.dart';
 import 'package:preojeto/view/detalhes_view.dart';
@@ -32,7 +32,7 @@ Future<void> main() async {
   runApp(
     //home: AuroraAnimation(), // Usa a animação da aurora como tela inicial
     DevicePreview(
-      builder: (context) => ChangeNotifierProvider(
+      builder: (context) => ChangeNotifierProvider( // provider
         create: (context) => MessageNotifier(),
         child: const MainApp(),
       ),
