@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class MessageNotifier extends ChangeNotifier {
-  List<String> _messages = [];
+  final List<String> _messages = [];
 
   List<String> get messages => _messages;
 

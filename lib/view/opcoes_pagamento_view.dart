@@ -3,6 +3,8 @@ import 'package:get_it/get_it.dart';
 import '../services/pedido_service.dart'; // Importe o PedidoService
 
 class OpcoesPagamentoView extends StatelessWidget {
+  const OpcoesPagamentoView({super.key});
+
   @override
   Widget build(BuildContext context) {
     final pedidoService =

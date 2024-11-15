@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import '../services/pedido_service.dart';
+import 'package:logger/logger.dart';
 
 class HistoricoView extends StatefulWidget {
+  const HistoricoView({super.key});
+
   @override
-  _HistoricoViewState createState() => _HistoricoViewState();
+  HistoricoViewState createState() => HistoricoViewState();
 }
 
-class _HistoricoViewState extends State<HistoricoView> {
+class HistoricoViewState extends State<HistoricoView> {
   List<String> historico = [];
   int _currentIndex = 1;
 
@@ -37,7 +40,7 @@ class _HistoricoViewState extends State<HistoricoView> {
       historico = await getIt<PedidoService>().obterHistorico();
       setState(() {});
     } catch (e) {
-      print('Erro ao carregar histórico: $e');
+      Logger().e('Erro ao carregar histórico: $e');
     }
   }
 
@@ -114,8 +117,7 @@ class _HistoricoViewState extends State<HistoricoView> {
                 );
               },
             ),
-
-            bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBar(
         fixedColor: Colors.black,
         backgroundColor: Color(0xFFFFD600),
         currentIndex: _currentIndex,
@@ -123,8 +125,7 @@ class _HistoricoViewState extends State<HistoricoView> {
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long),
-              label: 'Pedidos'),
+              icon: Icon(Icons.receipt_long), label: 'Pedidos'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),

@@ -1,28 +1,28 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:preojeto/firebase_options.dart';
+import 'package:los_pollos_hermanos/firebase_options.dart';
 //import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart'; // Certifique-se de importar o provider
+import 'package:provider/provider.dart'; // Certifique-se de importar o provider pois ele é necessário para o uso do ChangeNotifierProvider
 
-import 'package:preojeto/view/cadastro_view.dart';
-import 'package:preojeto/view/detalhes_view.dart';
-import 'package:preojeto/view/esqueci_senha_view.dart';
-import 'package:preojeto/view/login_view.dart';
-import 'package:preojeto/view/menu_view.dart';
-import 'package:preojeto/view/categoria_view.dart';
-import 'package:preojeto/view/carrinho_view.dart';
-import 'package:preojeto/view/perfil_view.dart';
-import 'package:preojeto/view/pagamento_view.dart';
-import 'package:preojeto/view/opcoes_pagamento_view.dart';
-import 'package:preojeto/view/promo_view.dart';
-import 'package:preojeto/view/promo2_view.dart';
-import 'package:preojeto/view/historico_view.dart';
-import 'package:preojeto/view/splash_view.dart';
+import 'package:los_pollos_hermanos/view/cadastro_view.dart';
+import 'package:los_pollos_hermanos/view/detalhes_view.dart';
+import 'package:los_pollos_hermanos/view/esqueci_senha_view.dart';
+import 'package:los_pollos_hermanos/view/login_view.dart';
+import 'package:los_pollos_hermanos/view/menu_view.dart';
+import 'package:los_pollos_hermanos/view/categoria_view.dart';
+import 'package:los_pollos_hermanos/view/carrinho_view.dart';
+import 'package:los_pollos_hermanos/view/perfil_view.dart';
+import 'package:los_pollos_hermanos/view/pagamento_view.dart';
+import 'package:los_pollos_hermanos/view/opcoes_pagamento_view.dart';
+import 'package:los_pollos_hermanos/view/promo_view.dart';
+import 'package:los_pollos_hermanos/view/promo2_view.dart';
+import 'package:los_pollos_hermanos/view/historico_view.dart';
+import 'package:los_pollos_hermanos/view/splash_view.dart';
 
-import 'package:preojeto/services/message_notifier.dart';
-import 'package:preojeto/services/pedido_service.dart';
-import 'package:preojeto/widgets/aurora_animation.dart'; // Importa a animação da aurora
+import 'package:los_pollos_hermanos/services/message_notifier.dart';
+import 'package:los_pollos_hermanos/services/pedido_service.dart';
+import 'package:los_pollos_hermanos/widgets/aurora_animation.dart'; // Importa a animação da aurora
 
 Future<void> main() async {
   await Firebase.initializeApp(
@@ -32,7 +32,7 @@ Future<void> main() async {
   runApp(
     //home: AuroraAnimation(), // Usa a animação da aurora como tela inicial
     DevicePreview(
-      builder: (context) => ChangeNotifierProvider(
+      builder: (context) => ChangeNotifierProvider( // provider
         create: (context) => MessageNotifier(),
         child: const MainApp(),
       ),

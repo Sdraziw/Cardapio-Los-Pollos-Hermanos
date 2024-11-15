@@ -1,4 +1,4 @@
-name: preojeto
+name: los_pollos_hermanos
 description: "Projeto Restaurante."
 publish_to: 'none'
 version: 0.2.0
@@ -16,14 +16,19 @@ dependencies:
   logger: ^1.4.0 
   path_provider: ^2.1.4
   video_player: ^2.4.5
-  audioplayers: ^6.0.1
+  audioplayers: ^6.1.0
+  collection: ^1.16.0
+  file_picker: ^8.0.3
+  http: ^1.0.0
   just_audio: ^0.9.18
   get: ^4.6.6
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.4
+  provider: ^6.1.2
 
 dev_dependencies:
+  audioplayers_platform_interface: ^7.0.0
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0

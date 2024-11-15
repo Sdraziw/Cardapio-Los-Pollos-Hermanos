@@ -5,17 +5,17 @@ class AuroraAnimation extends StatefulWidget {
   const AuroraAnimation({super.key});
 
   @override
-  _AuroraAnimationState createState() => _AuroraAnimationState();
+  AuroraAnimationState createState() => AuroraAnimationState();
 }
 
-class _AuroraAnimationState extends State<AuroraAnimation>
+class AuroraAnimationState extends State<AuroraAnimation>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  late AnimationController controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10),
     )..repeat();
@@ -23,7 +23,7 @@ class _AuroraAnimationState extends State<AuroraAnimation>
 
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -31,7 +31,7 @@ class _AuroraAnimationState extends State<AuroraAnimation>
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomPaint(
-        painter: AuroraPainter(_controller),
+        painter: AuroraPainter(controller),
         child: Container(),
       ),
     );

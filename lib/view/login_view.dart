@@ -1,11 +1,5 @@
-/* RF001 Login / Logout
-●	A tela de login contém campos de e-mail, senha, logotipo e botões de "Entrar" e "Cadastrar".
-●	Validação correta de e-mail (formato) e campos vazios.
-●	O botão "Entrar" aciona o login, e "Cadastrar" navega para o cadastro de usuário.
-●	O logout redireciona para a tela de login, descartando dados.
-*/
 import 'package:flutter/material.dart';
-import 'package:preojeto/controller/login_controller.dart';
+import 'package:los_pollos_hermanos/controller/login_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Para salvar localmente o estado de "Lembre-se de mim"
 import 'dart:math'; // Para gerar cores aleatórias
 
@@ -21,8 +15,6 @@ class _LoginViewState extends State<LoginView> {
   Color backgroundColor = const Color(0xFFFFD600);
   final primaryColor = const Color.fromARGB(255, 0, 0, 0);
 
-  final txtValor1 = TextEditingController();
-  final txtValor2 = TextEditingController();
   final txtEmail = TextEditingController();
   final txtSenha = TextEditingController();
 
@@ -42,8 +34,8 @@ class _LoginViewState extends State<LoginView> {
     setState(() {
       _rememberMe = prefs.getBool('rememberMe') ?? false;
       if (_rememberMe) {
-        txtValor1.text = prefs.getString('email') ?? '';
-        txtValor2.text = prefs.getString('senha') ?? '';
+        txtEmail.text = prefs.getString('email') ?? '';
+        txtSenha.text = prefs.getString('senha') ?? '';
       }
     });
   }
@@ -53,8 +45,8 @@ class _LoginViewState extends State<LoginView> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool('rememberMe', _rememberMe);
     if (_rememberMe) {
-      prefs.setString('email', txtValor1.text);
-      prefs.setString('senha', txtValor2.text);
+      prefs.setString('email', txtEmail.text);
+      prefs.setString('senha', txtSenha.text);
     } else {
       prefs.remove('email');
       prefs.remove('senha');
@@ -117,7 +109,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 5),
                     TextFormField(
-                      controller: txtValor1,
+                      controller: txtEmail,
                       style: TextStyle(
                         fontSize: 18,
                         color: clickCount >= 4 ? Colors.white : Colors.black,
@@ -147,7 +139,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
-                      controller: txtValor2,
+                      controller: txtSenha,
                       style: TextStyle(
                         fontSize: 18,
                         color: clickCount >= 4 ? Colors.white : Colors.black,
@@ -256,8 +248,8 @@ class _LoginViewState extends State<LoginView> {
                         if (formKey.currentState!.validate()) {
                           LoginController().login(
                             context,
-                            txtValor1.text,
-                            txtValor2.text,
+                            txtEmail.text,
+                            txtSenha.text,
                           );
                           _saveRememberMe(); // Salva as credenciais
                         }
@@ -294,7 +286,10 @@ class _LoginViewState extends State<LoginView> {
                   clickCount++;
                   if (clickCount == 1) {
                     ScaffoldMessenger.of(context).showSnackBar(
+                      // Exibe a mensagem na tela
+                      // O texto é exibido de acordo com o número de cliques
                       SnackBar(
+                        backgroundColor: Colors.black.withOpacity(0.2),
                           content: Text(
                         '☼ Sol com sombra?  ${(clickCount)}ª vez que vejo!',
                         style: TextStyle(
@@ -303,7 +298,8 @@ class _LoginViewState extends State<LoginView> {
                     );
                   } else if (clickCount == 2) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.black.withOpacity(0.2),
                           content: Text(
                         '☀ Sol não tem sombra!  ${(clickCount)}ª vez observando!',
                         style: TextStyle(
@@ -313,6 +309,7 @@ class _LoginViewState extends State<LoginView> {
                   } else if (clickCount == 3) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
+                        backgroundColor: Colors.black.withOpacity(0.2),
                           content: Text(
                         '☀ Sol se movendo ou estou delirando pela ${(clickCount)}ª vez',
                         style: TextStyle(
@@ -322,6 +319,7 @@ class _LoginViewState extends State<LoginView> {
                   } else if (clickCount == 4) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
+                        backgroundColor: Colors.white.withOpacity(0.2),
                           content: Text(
                         '◌ Lua!? Noite!? 🌙 Delirando ${(clickCount)}ª vez\nAchei que fosse o calor! Mas não era! É FOME!',
                         style: TextStyle(
@@ -331,6 +329,7 @@ class _LoginViewState extends State<LoginView> {
                   } else if (clickCount == 5) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
+                        backgroundColor: Colors.white.withOpacity(0.2),
                           content: Text(
                         'Devo estar com fome, pela ${(clickCount)}ª vez, estou delirando',
                         style: TextStyle(
@@ -339,7 +338,8 @@ class _LoginViewState extends State<LoginView> {
                     );
                   } else if (clickCount == 6) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.green.withOpacity(0.2),
                         content: Text(
                           'Easter Egg ativado!🍀',
                           style: TextStyle(
@@ -351,7 +351,8 @@ class _LoginViewState extends State<LoginView> {
                     Navigator.pushNamed(context, 'promo');
                   } else if (clickCount == 10) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.yellow.withOpacity(0.2),
                         content: Text(
                           'Olhos de águia! ☽',
                           style: TextStyle(
@@ -361,7 +362,8 @@ class _LoginViewState extends State<LoginView> {
                     );
                   } else if (clickCount == 16) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.white.withOpacity(0.2),
                         content: Text(
                           '☽ Até gostei deste tema noturno! 🌙',
                           style: TextStyle(
@@ -371,7 +373,8 @@ class _LoginViewState extends State<LoginView> {
                     );
                   } else if (clickCount == 37) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.white.withOpacity(0.2),
                         content: Text(
                           'Essa águia está de olho no meu lanche!\nVeja o cupom que já informei o LANCHE2024!',
                           style: TextStyle(
@@ -381,7 +384,8 @@ class _LoginViewState extends State<LoginView> {
                     );
                   } else if (clickCount == 38) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.blue.withOpacity(0.2),
                         content: Text(
                           'Easter Egg ativado *2! 🍀',
                           style: TextStyle(
