@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:preojeto/controller/login_controller.dart';
+import 'package:los_pollos_hermanos/controller/login_controller.dart';
 
 class CadastroView extends StatefulWidget {
   const CadastroView({super.key});
@@ -202,14 +202,26 @@ class _CadastroViewState extends State<CadastroView> {
                     backgroundColor: const Color.fromARGB(255, 0, 0, 0),
                     foregroundColor: Colors.white,
                     textStyle: const TextStyle(fontSize: 15),
-                  ), // Dentro do método onPressed do botão de cadastrar em CadastroView
+                  ),
                   onPressed: () {
-                    LoginController().criarConta(
-                      context,
-                      txtNome.text,
-                      txtEmail.text,
-                      txtSenha.text,
-                    );
+                    if (formKey.currentState!.validate()) {
+                      if (txtEmail.text != txtConfirmaEmail.text) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Os e-mails não correspondem')),
+                        );
+                      } else if (txtSenha.text != txtConfirmaSenha.text) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('As senhas não correspondem')),
+                        );
+                      } else {
+                        LoginController().criarConta(
+                          context,
+                          txtNome.text,
+                          txtEmail.text,
+                          txtSenha.text,
+                        );
+                      }
+                    }
                   },
                   child: Text('Cadastrar'),
                 ),

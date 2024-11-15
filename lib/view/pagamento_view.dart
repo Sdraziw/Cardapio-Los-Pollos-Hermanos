@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:math'; 
 
 class PagamentoView extends StatelessWidget {
+  const PagamentoView({super.key});
+
   @override
   Widget build(BuildContext context) {
     // Gerar um número de pedido aleatório de 4 dígitos
@@ -47,13 +49,13 @@ class PagamentoView extends StatelessWidget {
                 // Redirecionar para a tela de opções de pagamento
                 Navigator.pushNamed(context, 'opcoes_pagamento');
               },
-              child: Text('Pagar Antecipadamente'),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 textStyle: TextStyle(fontSize: 18),
                 backgroundColor: Color(0xFFFFD600),
                 foregroundColor: Colors.black,
               ),
+              child: Text('Pagar Antecipadamente'),
             ),
           ],
         ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:preojeto/controller/login_controller.dart';
+import 'package:los_pollos_hermanos/controller/login_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Para salvar localmente o estado de "Lembre-se de mim"
 import 'dart:math'; // Para gerar cores aleatórias
 

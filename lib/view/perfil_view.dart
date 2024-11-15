@@ -1,25 +1,25 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_network/image_network.dart';
-import 'package:preojeto/controller/login_controller.dart';
+import 'package:los_pollos_hermanos/controller/login_controller.dart';
 
 class PerfilView extends StatefulWidget {
   const PerfilView({super.key});
 
   @override
-  State<PerfilView> createState() => _PerfilViewState();
+  State<PerfilView> createState() => PerfilViewState();
 }
 
-class _PerfilViewState extends State<PerfilView> {
+class PerfilViewState extends State<PerfilView> {
   final LoginController _controller = LoginController();
   String? email = FirebaseAuth.instance.currentUser?.email;
 
   bool obscureText_ = true;
-  int _currentIndex = 2;
+  int currentIndex = 2;
 
   void _onTabTapped(int index) {
     setState(() {
-      _currentIndex = index;
+      currentIndex = index;
     });
 
     if (index == 0) {
@@ -187,7 +187,7 @@ class _PerfilViewState extends State<PerfilView> {
       bottomNavigationBar: BottomNavigationBar(
         fixedColor: Colors.black,
         backgroundColor: const Color(0xFFFFD600),
-        currentIndex: _currentIndex,
+        currentIndex: currentIndex,
         onTap: _onTabTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

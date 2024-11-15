@@ -4,11 +4,13 @@ import '../services/pedido_service.dart';
 import '../model/itens_model.dart';
 
 class CarrinhoView extends StatefulWidget {
+  const CarrinhoView({super.key});
+
   @override
-  _CarrinhoViewState createState() => _CarrinhoViewState();
+  CarrinhoViewState createState() => CarrinhoViewState();
 }
 
-class _CarrinhoViewState extends State<CarrinhoView> {
+class CarrinhoViewState extends State<CarrinhoView> {
   final pedidoService = GetIt.I<PedidoService>();
   bool incluirGorjeta = false;
   double percentualGorjeta = 10.0;
@@ -106,13 +108,13 @@ class _CarrinhoViewState extends State<CarrinhoView> {
                   onPressed: () {
                     aplicarCodigoPromocional(codigoPromocional);
                   },
-                  child: Text('Aplicar Código Promocional'),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                     textStyle: TextStyle(fontSize: 18),
                     backgroundColor: Color(0xFFFFD600),
                     foregroundColor: Colors.black,
                   ),
+                  child: Text('Aplicar Código Promocional'),
                 ),
                 CheckboxListTile(
                   title: Text("Incluir gorjeta de $percentualGorjeta%"),
@@ -177,13 +179,13 @@ class _CarrinhoViewState extends State<CarrinhoView> {
                     Navigator.pushNamed(context, 'pagamento',
                         arguments: totalComGorjeta);
                   },
-                  child: Text('Efetuar Pagamento'),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                     textStyle: TextStyle(fontSize: 18),
                     backgroundColor: Color(0xFFFFD600),
                     foregroundColor: Colors.black,
                   ),
+                  child: Text('Efetuar Pagamento'),
                 ),
                 SizedBox(height: 50),
               ],
