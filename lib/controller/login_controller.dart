@@ -59,7 +59,7 @@ class LoginController {
         case 'invalid-email':
           erro(context, 'E-mail ou Senha incorretos.');
           break;
-        case 'invalid-password':
+        case 'invalid-credential':
           erro(context, 'E-mail ou Senha incorretos.');
         default:
           erro(context, 'ERRO: ${e.code.toString()}');
@@ -75,6 +75,16 @@ class LoginController {
   void esqueceuSenha(context, String email) {
     if (email.isNotEmpty) {
       auth.sendPasswordResetEmail(email: email);
+      sucesso(context, 'Email enviado com sucesso.');
+    } else {
+      erro(context, 'Informe o email para recuperar a conta.');
+    }
+    Navigator.pop(context);
+  }
+
+  void redefinirSenha(context, String novaSenha) {
+    if (novaSenha.isNotEmpty) {
+      auth.confirmPasswordReset(code: '', newPassword: novaSenha);
       sucesso(context, 'Email enviado com sucesso.');
     } else {
       erro(context, 'Informe o email para recuperar a conta.');

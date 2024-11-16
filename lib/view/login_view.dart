@@ -178,8 +178,6 @@ class _LoginViewState extends State<LoginView> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Informe sua senha';
-                        } else if (value.length < 6) {
-                          return 'A senha deve ter pelo menos 6 caracteres';
                         }
                         return null;
                       },

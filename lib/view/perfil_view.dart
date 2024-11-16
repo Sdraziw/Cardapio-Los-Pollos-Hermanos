@@ -138,7 +138,7 @@ class PerfilViewState extends State<PerfilView> {
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          obscureText_ ? Icons.visibility_off : Icons.visibility,
+                          Icons.edit,
                           color: Colors.black,
                         ),
                         onPressed: () {
@@ -162,6 +162,8 @@ class PerfilViewState extends State<PerfilView> {
                 textStyle: const TextStyle(fontSize: 18),
               ),
               onPressed: () {
+                LoginController().logout();
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Deslogando...\nDirecionado para a página de Login!'),

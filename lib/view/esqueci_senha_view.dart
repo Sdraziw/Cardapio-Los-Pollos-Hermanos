@@ -3,6 +3,7 @@ Não solicitado, porém adaptado ao projeto
 */
 
 import 'package:flutter/material.dart';
+import 'package:los_pollos_hermanos/controller/login_controller.dart';
 
 class EsqueciSenhaView extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -40,17 +41,7 @@ class EsqueciSenhaView extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 String email = emailController.text;
-
-                // Aqui você pode implementar a lógica para enviar um e-mail de redefinição de senha.
-                // Simulando uma mensagem de sucesso.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Instruções enviadas para $email!'),
-                  ),
-                );
-
-                // Voltar para a tela de login
-                Navigator.pop(context);
+                LoginController().esqueceuSenha(context, email);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFD600), // Cor do botão
