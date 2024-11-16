@@ -97,7 +97,7 @@ class _CadastroViewState extends State<CadastroView> {
                       if (value == null || value.isEmpty) {
                         return 'Informe seu e-mail';
                       } else if (!RegExp(
-                              r"^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',) // Expressão regular para validar e-mail
                           .hasMatch(value)) {
                         return 'Formato de e-mail inválido';
                       }
