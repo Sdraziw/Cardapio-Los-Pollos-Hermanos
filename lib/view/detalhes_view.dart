@@ -40,7 +40,7 @@ class _DetalhesViewState extends State<DetalhesView> {
             children: [
               // Imagem do prato
               ImageNetwork(
-                image: dados.foto,
+                image: dados.imagem,
                 height: 200,
                 width: screenWidth, // Usando a largura da tela para a imagem
                 fitWeb: BoxFitWeb.cover, // A imagem cobre a largura com proporção mantida

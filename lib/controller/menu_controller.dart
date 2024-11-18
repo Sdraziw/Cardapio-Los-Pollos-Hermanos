@@ -4,26 +4,30 @@ import 'package:firebase_auth/firebase_auth.dart';
 class MenuController {
   final FirebaseAuth auth = FirebaseAuth.instance;
 
-  Future<String> nomeCategoria(ordem) async {
+  Future<String> nomeCategoria(int ordem) async {
     var nome = "";
     await FirebaseFirestore.instance
       .collection('categorias')
       .where('ordem', isEqualTo: ordem)
       .get()
-      .then((value){
-        nome = value.docs[0].data()['nome']  ?? '';
+      .then((value) {
+        if (value.docs.isNotEmpty) {
+          nome = value.docs[0].data()['nome'] ?? '';
+        }
       });
     return nome;
   }
 
-  Future<String> ordemCategoria(nome) async {
-    var ordem = "";
+  Future<int> ordemCategoria(String nome) async {
+    var ordem = 0;
     await FirebaseFirestore.instance
       .collection('categorias')
       .where('nome', isEqualTo: nome)
       .get()
-      .then((value){
-        ordem = value.docs[0].data()['ordem']  ?? '';
+      .then((value) {
+        if (value.docs.isNotEmpty) {
+          ordem = value.docs[0].data()['ordem'] ?? 0;
+        }
       });
     return ordem;
   }
@@ -76,15 +80,45 @@ class MenuController {
     return imagem;
   }
 
-  Future<bool> itensCardapioAtivo(nome) async {
-    var ativo = false;
+  Future<bool> itensCardapioAtivo(String nome) async {
+    bool ativo = false;
     await FirebaseFirestore.instance
       .collection('itens_cardapio')
       .where('nome', isEqualTo: nome)
       .get()
-      .then((value){
-        ativo = value.docs[0].data()['ativo']  ?? '';
+      .then((value) {
+        if (value.docs.isNotEmpty) {
+          ativo = value.docs[0].data()['ativo'] ?? false;
+        }
       });
     return ativo;
+  }
+
+  Future<String> obterImagemPorNome(String nome) async {
+    String imagem = '';
+    await FirebaseFirestore.instance
+      .collection('itens_cardapio')
+      .where('nome', isEqualTo: nome)
+      .get()
+      .then((value) {
+        if (value.docs.isNotEmpty) {
+          imagem = value.docs[0].data()['imagem'] ?? '';
+        }
+      });
+    return imagem;
+  }
+
+  Future<List<String>> obterItensPorCategoria(String categoria) async {
+    List<String> itens = [];
+    await FirebaseFirestore.instance
+      .collection('itens_cardapio')
+      .where('categoria', isEqualTo: categoria)
+      .get()
+      .then((value) {
+        for (var doc in value.docs) {
+          itens.add(doc.data()['nome']);
+        }
+      });
+    return itens;
   }
 }
