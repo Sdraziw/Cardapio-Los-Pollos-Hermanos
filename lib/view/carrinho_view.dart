@@ -3,8 +3,6 @@ import 'package:get_it/get_it.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/pedido_service.dart';
-import 'package:intl/intl.dart';
-import '../model/itens_model.dart';
 
 class CarrinhoView extends StatefulWidget {
   const CarrinhoView({super.key});
@@ -50,37 +48,51 @@ class CarrinhoViewState extends State<CarrinhoView> {
           },
         ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: firestore
-            .collection('usuarios')
-            .doc(auth.currentUser!.uid)
-            .collection('carrinho')
-            .snapshots(),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: pedidoService.buscarItensPedido(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());
           }
 
-          List<Prato> itensCarrinho = snapshot.data!.docs.map((doc) => Prato.fromDocument(doc)).toList();
+          List<Map<String, dynamic>> itensCarrinho = snapshot.data!;
 
           if (itensCarrinho.isEmpty) {
             return Center(child: Text('Seu carrinho está vazio.'));
           }
 
-          double total = itensCarrinho.fold(0, (sum, item) => sum + item.preco * item.quantidade);
+          double total = itensCarrinho.fold(0, (sum, item) => sum + item['preco'] * item['quantidade']);
 
           return Column(
             children: [
+              FutureBuilder<int?>(
+                future: pedidoService.buscarNumeroPedido(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  int? numeroPedido = snapshot.data;
+                  if (numeroPedido == null) {
+                    return Center(child: Text('Erro ao carregar o número do pedido.'));
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text('Número do Pedido: $numeroPedido', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  );
+                },
+              ),
               Expanded(
                 child: ListView.builder(
                   itemCount: itensCarrinho.length,
                   itemBuilder: (context, index) {
-                    Prato prato = itensCarrinho[index];
+                    var item = itensCarrinho[index];
                     return ListTile(
-                      leading: prato.imagem.isNotEmpty ? Image.network(prato.imagem) : null,
-                      title: Text(prato.nome),
-                      subtitle: Text('${prato.descricao}\nQuantidade: ${prato.quantidade}'),
-                      trailing: Text(prato.precoFormatado),
+                      leading: item['foto'] != null ? Image.network(item['foto']) : null,
+                      title: Text(item['nome']),
+                      subtitle: Text('${item['descricao']}\nQuantidade: ${item['quantidade']}'),
+                      trailing: Text('R\$ ${item['preco'].toStringAsFixed(2)}'),
                       isThreeLine: true,
                     );
                   },
@@ -91,11 +103,21 @@ class CarrinhoViewState extends State<CarrinhoView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Total: ${NumberFormat.simpleCurrency(locale: 'pt_BR').format(total)}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text('Total: R\$ ${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         // Implementar a lógica de finalização do pedido
+                        final user = auth.currentUser;
+                        if (user != null) {
+                          final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+                          await pedidoRef.update({'status': 'preparando'});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Pedido finalizado e enviado para preparação!'),
+                            ),
+                          );
+                        }
                       },
                       child: Text('Finalizar Pedido'),
                     ),

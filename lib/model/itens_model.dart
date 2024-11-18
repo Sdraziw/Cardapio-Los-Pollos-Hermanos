@@ -100,7 +100,7 @@ class Prato {
       }
     }
   }
-
+/*
 
   // Método estático para geração de Entradas
   static Future<void> gerarEntradas() async {
@@ -333,4 +333,6 @@ class Prato {
 
     await adicionarItensAoFirestore(sobremesas, 'Sobremesas');
   }
+
+  */
 }

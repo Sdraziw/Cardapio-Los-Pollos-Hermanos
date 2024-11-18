@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_network/image_network.dart';
 import 'package:get_it/get_it.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:los_pollos_hermanos/view/carrinho_view.dart';
 import '../model/itens_model.dart';
 import '../services/pedido_service.dart';
 import '../controller/menu_controller.dart' as custom;
@@ -17,7 +19,7 @@ class DetalhesView extends StatefulWidget {
 class _DetalhesViewState extends State<DetalhesView> {
   int quantidade = 1; // Contador para a quantidade do prato
   final pedidoService = GetIt.I<PedidoService>(); // Acessando o serviço de pedidos
-  final custom.MenuController _menuController = custom.MenuController(); // Instância do MenuController
+  final custom.MenuController menuController = custom.MenuController(); // Instância do MenuController
 
   @override
   Widget build(BuildContext context) {
@@ -51,21 +53,24 @@ class _DetalhesViewState extends State<DetalhesView> {
               SizedBox(height: 20),
 
               // Descrição do prato usando FutureBuilder
-              FutureBuilder<String>(
-                future: _menuController.itensCardapioDescricao(dados.nome),
+              FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance.collection('itens_cardapio').doc(dados.nome).get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return CircularProgressIndicator();
                   } else if (snapshot.hasError) {
                     return Text('Erro ao carregar a descrição');
+                  } else if (!snapshot.hasData || !snapshot.data!.exists) {
+                    return Text('Descrição não encontrada');
                   } else {
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
                     return ListTile(
                       title: Text(
                         'Descrição',
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        snapshot.data ?? '',
+                        data['descricao'] ?? '',
                         style: TextStyle(fontSize: 16),
                       ),
                     );
@@ -76,21 +81,25 @@ class _DetalhesViewState extends State<DetalhesView> {
               SizedBox(height: 30),
 
               // Preço do prato usando FutureBuilder
-              FutureBuilder<double>(
-                future: _menuController.itensCardapioPreco(dados.nome),
+              FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance.collection('itens_cardapio').doc(dados.nome).get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return CircularProgressIndicator();
                   } else if (snapshot.hasError) {
                     return Text('Erro ao carregar o preço');
+                  } else if (!snapshot.hasData || !snapshot.data!.exists) {
+                    return Text('Preço não encontrado');
                   } else {
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    double preco = (data['preco'] as num).toDouble();
                     return ListTile(
                       title: Text(
                         'Preço',
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        'R\$ ${snapshot.data?.toStringAsFixed(2) ?? ''}', // Exibindo o preço em formato monetário
+                        'R\$ ${preco.toStringAsFixed(2)}', // Exibindo o preço em formato monetário
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     );
@@ -136,15 +145,18 @@ class _DetalhesViewState extends State<DetalhesView> {
               SizedBox(height: 5),
 
               // Exibição do total com base na quantidade selecionada
-              FutureBuilder<double>(
-                future: _menuController.itensCardapioPreco(dados.nome),
+              FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance.collection('itens_cardapio').doc(dados.nome).get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return CircularProgressIndicator();
                   } else if (snapshot.hasError) {
                     return Text('Erro ao carregar o preço');
+                  } else if (!snapshot.hasData || !snapshot.data!.exists) {
+                    return Text('Preço não encontrado');
                   } else {
-                    double preco = snapshot.data ?? 0.0;
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    double preco = (data['preco'] as num).toDouble();
                     return Text(
                       'Total: R\$ ${(quantidade * preco).toStringAsFixed(2)}',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -157,11 +169,9 @@ class _DetalhesViewState extends State<DetalhesView> {
 
               // Botão de adicionar ao pedido
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   // Adiciona o prato ao pedido usando o serviço
-                  for (int i = 0; i < quantidade; i++) {
-                    pedidoService.adicionarAoPedido(dados);
-                  }
+                  await pedidoService.adicionarAoPedido(dados, quantidade);
 
                   // Exibir um snackbar ou diálogo confirmando a adição
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -170,13 +180,13 @@ class _DetalhesViewState extends State<DetalhesView> {
                     ),
                   );
 
-                  // Redireciona para a tela de pedidos
-                  /*Navigator.push(
+                  // Redireciona para a tela de pedidos carrinho
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            PedidosView()), // Navegar para a tela de pedidos
-                  );*/
+                            CarrinhoView()), // Navegar para a tela de pedidos
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(300, 50),

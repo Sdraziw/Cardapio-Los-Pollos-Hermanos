@@ -1,10 +1,16 @@
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/itens_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class PedidoService {
   static const String _numeroPedidoKey = 'numeroPedido';
   static const String _historicoKey = 'historicoPedidos';
+  // Lista de pratos no pedido atual
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   // Lista de pratos no pedido atual
   final List<Prato> _pedidos = [];
@@ -25,8 +31,70 @@ class PedidoService {
   }
 
   // Adiciona um prato ao pedido
-  void adicionarAoPedido(Prato prato) {
+  void adicionarPratoAoPedido(Prato prato) {
     _pedidos.add(prato);
+  }
+
+  Future<void> adicionarAoPedido(Prato prato, int quantidade) async {
+    final user = auth.currentUser;
+    if (user != null) {
+      final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+
+      // Verificar se o pedido já existe
+      final pedidoDoc = await pedidoRef.get();
+      if (!pedidoDoc.exists) {
+        // Criar um novo pedido se não existir
+        await pedidoRef.set({
+          'uid': user.uid,
+          'status': 'aguardando pagamento',
+          'data_hora': FieldValue.serverTimestamp(),
+          'numero_pedido': await _obterProximoNumeroPedido(),
+        });
+      }
+
+      // Adicionar o item à subcoleção 'itens'
+      await pedidoRef.collection('itens').add({
+        'nome': prato.nome,
+        'preco': prato.preco,
+        'quantidade': quantidade,
+      });
+    }
+  }
+
+  Future<int> _obterProximoNumeroPedido() async {
+    final configRef = firestore.collection('config').doc('numeroPedido');
+    final configDoc = await configRef.get();
+
+    if (configDoc.exists) {
+      int numeroPedido = configDoc['numero'] ?? 0;
+      await configRef.update({'numero': numeroPedido + 1});
+      return numeroPedido + 1;
+    } else {
+      await configRef.set({'numero': 1});
+      return 1;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> buscarItensPedido() async {
+    final user = auth.currentUser;
+    if (user != null) {
+      final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+      final itensSnapshot = await pedidoRef.collection('itens').get();
+      return itensSnapshot.docs.map((doc) => doc.data()).toList();
+    }
+    return [];
+  }
+
+  Future<int?> buscarNumeroPedido() async {
+    final user = auth.currentUser;
+    if (user != null) {
+      final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+      final pedidoDoc = await pedidoRef.get();
+      if (pedidoDoc.exists) {
+        return pedidoDoc['numero_pedido'];
+      }
+    }
+    return null;
   }
 
   // Remove um prato do pedido

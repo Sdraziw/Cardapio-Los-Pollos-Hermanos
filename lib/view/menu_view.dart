@@ -124,10 +124,18 @@ class MenuViewState extends State<MenuView> {
                             }
 
                             return ListTile(
-                              leading: prato.imagem.isNotEmpty ? Image.network(prato.imagem) : null,
+                              leading: prato.imagem.isNotEmpty
+                                  ? (prato.imagem.startsWith('http')
+                                      ? Image.network(prato.imagem)
+                                      : Image.asset(prato.imagem))
+                                  : null,
                               title: Text(prato.nome),
                               subtitle: Text(prato.descricao),
                               trailing: Text(prato.precoFormatado),
+                              onTap: () {
+                                // Navegar para a tela de detalhes do produto
+                                Navigator.pushNamed(context, 'detalhes', arguments: prato);
+                              },
                             );
                           },
                         );
