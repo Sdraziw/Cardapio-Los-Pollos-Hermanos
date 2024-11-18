@@ -1,7 +1,4 @@
-/* RF004 Detalhes do Item
-● Apresentação detalhada dos itens do cardápio, incluindo imagem, nome, descrição completa e preço
-● Adicionar item ao pedido.
-*/
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Prato {
   String nome;
@@ -11,6 +8,7 @@ class Prato {
   String resumo;
   int quantidade;
   String status;
+  bool cupom;
 
   Prato({
     required this.nome,
@@ -18,8 +16,9 @@ class Prato {
     required this.foto,
     required this.descricao,
     required this.resumo,
-    this.quantidade = 1, // Valor padrão
-    this.status = "Aguardando pagamento", // Status inicial
+    this.quantidade = 1,
+    this.status = 'pendente',
+    this.cupom = false,
   });
 
   // Método para calcular o preço do prato em formato numérico
@@ -34,11 +33,68 @@ class Prato {
     }
   }
 
-  //
-  // Método para geração de Entradas
-  //
-  static List<Prato> gerarEntradas() {
-    return [
+  // Método estático para criar uma instância de Prato a partir de um documento do Firestore
+  static Prato fromDocument(DocumentSnapshot doc) {
+    return Prato(
+      nome: doc['nome'],
+      preco: doc['preco'],
+      foto: doc['foto'],
+      descricao: doc['descricao'],
+      resumo: doc['resumo'],
+      quantidade: doc['quantidade'] ?? 1,
+      status: doc['status'] ?? 'pendente',
+      cupom: doc['cupom'] ?? false,
+    );
+  }
+
+  // Método estático para buscar todos os itens do Firestore
+  static Future<List<Prato>> buscarTodos() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('itens_cardapio').get();
+    return querySnapshot.docs.map((doc) => Prato.fromDocument(doc)).toList();
+  }
+
+  // Método estático para buscar um item específico pelo nome
+  static Future<Prato?> buscarPorNome(String nome) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('itens_cardapio')
+        .where('nome', isEqualTo: nome)
+        .get();
+    if (querySnapshot.docs.isNotEmpty) {
+      return Prato.fromDocument(querySnapshot.docs.first);
+    }
+    return null;
+  }
+
+  // Método estático para verificar se um item já existe no Firestore
+  static Future<bool> itemExiste(String nome) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('itens_cardapio')
+        .where('nome', isEqualTo: nome)
+        .get();
+    return querySnapshot.docs.isNotEmpty;
+  }
+
+  // Método estático para adicionar itens ao Firestore
+  static Future<void> adicionarItensAoFirestore(List<Prato> pratos, String categoria) async {
+    for (Prato prato in pratos) {
+      bool existe = await itemExiste(prato.nome);
+      if (!existe) {
+        await FirebaseFirestore.instance.collection('itens_cardapio').add({
+          'nome': prato.nome,
+          'preco': prato.preco,
+          'foto': prato.foto,
+          'descricao': prato.descricao,
+          'resumo': prato.resumo,
+          'ativo': true,
+          'categoria': categoria,
+        });
+      }
+    }
+  }
+
+  // Método estático para geração de Entradas
+  static Future<void> gerarEntradas() async {
+    List<Prato> entradas = [
       Prato(
         nome: 'Onion Rings',
         preco: 'R\$ 10,50',
@@ -85,13 +141,13 @@ class Prato {
             'Sortidos 1/3 de onions + 1/3 de batatas + 1/3 de frango empanado | 1,1 kg',
       ),
     ];
+
+    await adicionarItensAoFirestore(entradas, 'Entradas');
   }
 
-  //
-  // Método para geração de Pratos Principais
-  //
-  static List<Prato> gerarPratosPrincipais() {
-    return [
+  // Método estático para geração de Pratos Principais
+  static Future<void> gerarPratosPrincipais() async {
+    List<Prato> pratosPrincipais = [
       Prato(
         nome: 'X - Walter White',
         preco: 'R\$ 25,50',
@@ -136,10 +192,13 @@ class Prato {
         resumo: '2 lanches parrudo | 200g cada',
       ),
     ];
+
+    await adicionarItensAoFirestore(pratosPrincipais, 'Pratos Principais');
   }
 
-  static List<Prato> gerarBaldes() {
-    return [
+  // Método estático para geração de Baldes
+  static Future<void> gerarBaldes() async {
+    List<Prato> baldes = [
       Prato(
         nome: 'Balde de Frango G',
         preco: 'R\$ 19,50',
@@ -162,13 +221,13 @@ class Prato {
         resumo: '10 pedaços | 400g',
       ),
     ];
+
+    await adicionarItensAoFirestore(baldes, 'Baldes');
   }
 
-  //
-  // Método para geração de Bebidas
-  //
-  static List<Prato> gerarBebidas() {
-    return [
+  // Método estático para geração de Bebidas
+  static Future<void> gerarBebidas() async {
+    List<Prato> bebidas = [
       Prato(
         nome: "Refrigerante Soda",
         preco: "R\$ 10,90",
@@ -213,13 +272,13 @@ class Prato {
         resumo: '350ml',
       ),
     ];
+
+    await adicionarItensAoFirestore(bebidas, 'Bebidas');
   }
 
-  //
-  // Método para geração de Sobremesas
-  //
-  static List<Prato> gerarSobremesas() {
-    return [
+  // Método estático para geração de Sobremesas
+  static Future<void> gerarSobremesas() async {
+    List<Prato> sobremesas = [
       Prato(
         nome: "Cheesecake",
         preco: "R\$ 12,00",
@@ -243,5 +302,7 @@ class Prato {
         resumo: 'Casquinha Recheada e Massa Baunilha',
       ),
     ];
+
+    await adicionarItensAoFirestore(sobremesas, 'Sobremesas');
   }
 }

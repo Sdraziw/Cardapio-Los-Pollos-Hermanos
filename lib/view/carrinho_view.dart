@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/pedido_service.dart';
 import '../model/itens_model.dart';
 
@@ -12,6 +14,8 @@ class CarrinhoView extends StatefulWidget {
 
 class CarrinhoViewState extends State<CarrinhoView> {
   final pedidoService = GetIt.I<PedidoService>();
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
   bool incluirGorjeta = false;
   double percentualGorjeta = 10.0;
   String mensagemErro = '';
@@ -19,6 +23,119 @@ class CarrinhoViewState extends State<CarrinhoView> {
   String mensagemCodigo = '';
   bool lanche2024 = true;
   bool sobremesa2024 = true;
+
+  Future<int> obterProximoNumeroPedido() async {
+    DocumentReference docRef = firestore.collection('config').doc('numeroPedido');
+    DocumentSnapshot doc = await docRef.get();
+
+    if (doc.exists) {
+      int numeroAtual = doc['numeroAtual'];
+      await docRef.update({'numeroAtual': FieldValue.increment(1)});
+      return numeroAtual + 1;
+    } else {
+      await docRef.set({'numeroAtual': 1});
+      return 1;
+    }
+  }
+
+  void removerDoPedido(Prato prato) async {
+    User? user = auth.currentUser;
+    if (user != null) {
+      await firestore
+          .collection('pedidos')
+          .doc(user.uid)
+          .collection('itens')
+          .where('nome', isEqualTo: prato.nome)
+          .get()
+          .then((snapshot) {
+        for (DocumentSnapshot ds in snapshot.docs) {
+          ds.reference.delete();
+        }
+      });
+    }
+  }
+
+  void adicionarAoPedido(Prato prato, {bool cupom = false}) async {
+    User? user = auth.currentUser;
+    if (user != null) {
+      int numeroPedido = await obterProximoNumeroPedido();
+      DocumentReference pedidoRef = firestore.collection('pedidos').doc(user.uid);
+
+      // Verifica se o pedido já existe
+      DocumentSnapshot pedidoSnapshot = await pedidoRef.get();
+      if (!pedidoSnapshot.exists) {
+        // Cria um novo pedido se não existir
+        await pedidoRef.set({
+          'uid': user.uid,
+          'status': 'Em carrinho',
+          'data_hora': Timestamp.now(),
+          'numero': numeroPedido,
+        });
+      }
+
+      // Adiciona o item à subcoleção 'itens' do pedido
+      await pedidoRef.collection('itens').add({
+        'nome': prato.nome,
+        'preco': prato.preco,
+        'foto': prato.foto,
+        'descricao': prato.descricao,
+        'resumo': prato.resumo,
+        'quantidade': prato.quantidade,
+        'cupom': cupom,
+      });
+    }
+  }
+
+  void aplicarCodigoPromocionalNovo(String codigo) async {
+    Prato pratoGratuito;
+
+    if ((codigo == 'SOBREMESA2024') && sobremesa2024 == true) {
+      sobremesa2024 = false;
+      pratoGratuito = Prato(
+        nome: "🎃👻SOBREMESA2024 🍦- Sorvete Negresco",
+        preco: "R\$ 0,00",
+        foto: "lib/images/ice-cream.webp",
+        descricao:
+            "Sorvete Negresco é feito de leite condensado, leite, biscoitos Negresco, essência de baunilha, ovos, açúcar e creme de leite. Bem simples e delicioso! 🍦",
+        resumo: 'Casquinha Recheada e Massa Baunilha',
+        quantidade: 1,
+        cupom: true,
+      );
+      setState(() {
+        adicionarAoPedido(pratoGratuito, cupom: true); // Adiciona ao Firestore
+        mensagemCodigo =
+            'Código SOBREMESA2024 aplicado com sucesso! Sorvete Negresco adicionado ao pedido.';
+      });
+    } else if ((codigo == 'LANCHE2024') && lanche2024 == true) {
+      lanche2024 = false;
+      pratoGratuito = Prato(
+        nome: "🎃👻LANCHE2024 🍔- Cê é LOCO cachoeira",
+        preco: "R\$ 0,00",
+        foto: "lib/images/slc que foto.jpeg",
+        descricao: "Pão de hamburguer, Frango Parrudo Empanado, Molho Barbecue",
+        resumo: 'Lanche parrudo | 200g 🍔',
+        quantidade: 1,
+        cupom: true,
+      );
+      setState(() {
+        adicionarAoPedido(pratoGratuito, cupom: true); // Adiciona ao Firestore
+        mensagemCodigo =
+            'Código LANCHE2024 aplicado com sucesso! Lanche adicionado ao pedido.';
+      });
+    } else {
+      setState(() {
+        mensagemCodigo = 'Código promocional inválido ou já aplicado.';
+      });
+    }
+  }
+
+  double calcularTotalPedidoComGorjeta() {
+    double total = 0.0;
+    for (var prato in pedidoService.pedidos) {
+      total += double.parse(prato.preco.replaceAll('R\$ ', '').replaceAll(',', '.')) * prato.quantidade;
+    }
+    return total;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,26 +164,28 @@ class CarrinhoViewState extends State<CarrinhoView> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.remove),
-                        onPressed: () {
-                          setState(() {
-                            if (prato.quantidade > 1) {
-                              prato.quantidade--;
-                            } else {
-                              confirmarRemoverItem(prato);
-                            }
-                          });
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.add),
-                        onPressed: () {
-                          setState(() {
-                            prato.quantidade++;
-                          });
-                        },
-                      ),
+                      if (!prato.cupom) // Permite alterar a quantidade apenas se não for item de cupom
+                        IconButton(
+                          icon: Icon(Icons.remove),
+                          onPressed: () {
+                            setState(() {
+                              if (prato.quantidade > 1) {
+                                prato.quantidade--;
+                              } else {
+                                confirmarRemoverItem(prato);
+                              }
+                            });
+                          },
+                        ),
+                      if (!prato.cupom) // Permite alterar a quantidade apenas se não for item de cupom
+                        IconButton(
+                          icon: Icon(Icons.add),
+                          onPressed: () {
+                            setState(() {
+                              prato.quantidade++;
+                            });
+                          },
+                        ),
                       IconButton(
                         icon: Icon(Icons.delete),
                         onPressed: () {
@@ -233,7 +352,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
     );
   }
 
-  void aplicarCodigoPromocional(String codigo) {
+  void aplicarCodigoPromocional(String codigo) async {
     Prato pratoGratuito;
 
     if ((codigo == 'SOBREMESA2024') && sobremesa2024 == true) {
@@ -245,30 +364,33 @@ class CarrinhoViewState extends State<CarrinhoView> {
         descricao:
             "Sorvete Negresco é feito de leite condensado, leite, biscoitos Negresco, essência de baunilha, ovos, açúcar e creme de leite. Bem simples e delicioso! 🍦",
         resumo: 'Casquinha Recheada e Massa Baunilha',
+        quantidade: 1,
+        cupom: true,
       );
       setState(() {
-        pedidoService.adicionarAoPedido(pratoGratuito); // Aqui foi corrigido
+        adicionarAoPedido(pratoGratuito, cupom: true); // Adiciona ao Firestore
         mensagemCodigo =
-            'Código sobremesa2024 aplicado com sucesso! Sorvete Negresco adicionado ao pedido.';
+            'Código SOBREMESA2024 aplicado com sucesso! Sorvete Negresco adicionado ao pedido.';
       });
     } else if ((codigo == 'LANCHE2024') && lanche2024 == true) {
       lanche2024 = false;
       pratoGratuito = Prato(
         nome: "🎃👻LANCHE2024 🍔- Cê é LOCO cachoeira",
-        preco:
-            "R\$ 0,00", // Aqui assumimos que o combo também é gratuito com o código promocional
+        preco: "R\$ 0,00",
         foto: "lib/images/slc que foto.jpeg",
         descricao: "Pão de hamburguer, Frango Parrudo Empanado, Molho Barbecue",
         resumo: 'Lanche parrudo | 200g 🍔',
+        quantidade: 1,
+        cupom: true,
       );
       setState(() {
-        pedidoService.adicionarAoPedido(pratoGratuito); // Aqui foi corrigido
+        adicionarAoPedido(pratoGratuito, cupom: true); // Adiciona ao Firestore
         mensagemCodigo =
             'Código LANCHE2024 aplicado com sucesso! Lanche adicionado ao pedido.';
       });
     } else {
       setState(() {
-        mensagemCodigo = 'Código promocional inválido.';
+        mensagemCodigo = 'Código promocional inválido ou já aplicado.';
       });
     }
   }

@@ -5,7 +5,7 @@ import 'package:image_network/image_network.dart';
 import 'package:get_it/get_it.dart';
 import '../model/itens_model.dart';
 import '../services/pedido_service.dart';
-
+import '../controller/menu_controller.dart' as custom;
 
 class DetalhesView extends StatefulWidget {
   const DetalhesView({super.key});
@@ -16,8 +16,8 @@ class DetalhesView extends StatefulWidget {
 
 class _DetalhesViewState extends State<DetalhesView> {
   int quantidade = 1; // Contador para a quantidade do prato
-  final pedidoService =
-      GetIt.I<PedidoService>(); // Acessando o serviço de pedidos
+  final pedidoService = GetIt.I<PedidoService>(); // Acessando o serviço de pedidos
+  final custom.MenuController _menuController = custom.MenuController(); // Instância do MenuController
 
   @override
   Widget build(BuildContext context) {
@@ -43,38 +43,59 @@ class _DetalhesViewState extends State<DetalhesView> {
                 image: dados.foto,
                 height: 200,
                 width: screenWidth, // Usando a largura da tela para a imagem
-                fitWeb: BoxFitWeb
-                    .cover, // A imagem cobre a largura com proporção mantida
+                fitWeb: BoxFitWeb.cover, // A imagem cobre a largura com proporção mantida
                 onLoading: const CircularProgressIndicator(
                   color: Colors.indigoAccent,
                 ),
               ),
               SizedBox(height: 20),
 
-              // Descrição do prato
-              ListTile(
-                title: Text(
-                  'Descrição',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  "${dados.resumo}\n${dados.descricao}",
-                  style: TextStyle(fontSize: 16),
-                ),
+              // Descrição do prato usando FutureBuilder
+              FutureBuilder<String>(
+                future: _menuController.itensCardapioDescricao(dados.nome),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Erro ao carregar a descrição');
+                  } else {
+                    return ListTile(
+                      title: Text(
+                        'Descrição',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        snapshot.data ?? '',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    );
+                  }
+                },
               ),
 
               SizedBox(height: 30),
 
-              // Preço do prato
-              ListTile(
-                title: Text(
-                  'Preço',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  dados.preco, // Exibindo o preço em formato monetário
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+              // Preço do prato usando FutureBuilder
+              FutureBuilder<double>(
+                future: _menuController.itensCardapioPreco(dados.nome),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Erro ao carregar o preço');
+                  } else {
+                    return ListTile(
+                      title: Text(
+                        'Preço',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        'R\$ ${snapshot.data?.toStringAsFixed(2) ?? ''}', // Exibindo o preço em formato monetário
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  }
+                },
               ),
 
               SizedBox(height: 20),
@@ -115,9 +136,21 @@ class _DetalhesViewState extends State<DetalhesView> {
               SizedBox(height: 5),
 
               // Exibição do total com base na quantidade selecionada
-              Text(
-                'Total: R\$ ${(quantidade * double.parse(dados.preco.replaceAll('R\$ ', '').replaceAll(',', '.'))).toStringAsFixed(2)}',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              FutureBuilder<double>(
+                future: _menuController.itensCardapioPreco(dados.nome),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Erro ao carregar o preço');
+                  } else {
+                    double preco = snapshot.data ?? 0.0;
+                    return Text(
+                      'Total: R\$ ${(quantidade * preco).toStringAsFixed(2)}',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    );
+                  }
+                },
               ),
 
               SizedBox(height: 20),
@@ -133,8 +166,7 @@ class _DetalhesViewState extends State<DetalhesView> {
                   // Exibir um snackbar ou diálogo confirmando a adição
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                          'Adicionado $quantidade ${dados.nome}(s) ao pedido!'),
+                      content: Text('Adicionado $quantidade ${dados.nome}(s) ao pedido!'),
                     ),
                   );
 

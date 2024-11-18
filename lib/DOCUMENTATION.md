@@ -103,7 +103,9 @@ O que deverá ser entregue?
 ■	endereço do repositório do GitHub
 ■	endereço do aplicativo publicado no Firebase Hosting
 ■	Deve ser entregue também um vídeo de até 5 minutos apresentando o aplicativo. A apresentação deve abordar o aplicativo em funcionamento e também seu código. Na apresentação do código, focar nas partes relacionadas às rubricas. O vídeo deve estar no formato MP4. 
+
 Critérios de Avaliação
+
 [10%] RF001 Autenticação, Criação de Conta e Recuperação de Senha	Pontuação
 ●	Autenticação integrada ao Firebase Authentication.
 ●	Criação de Conta integrada ao Firebase Authentication.
