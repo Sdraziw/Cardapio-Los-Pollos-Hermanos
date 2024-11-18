@@ -39,3 +39,9 @@ flutter:
     - lib/images/
     - lib/videos/
     - lib/audios/
+    - lib/fonts/
+
+  fonts:
+    - family: CarnevaleeFreakshow
+      fonts:
+        - asset: lib/fonts/CarnevaleeFreakshow.ttf

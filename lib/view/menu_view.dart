@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model/itens_model.dart';
+import '../controller/login_controller.dart';
 
 class MenuView extends StatefulWidget {
   const MenuView({super.key});
@@ -16,6 +17,7 @@ class _MenuViewState extends State<MenuView> {
   List<Prato> listaBaldes = [];
   String query = '';
   int _currentIndex = 0;
+  final LoginController _controller = LoginController();
 
   @override
   void initState() {
@@ -70,13 +72,48 @@ class _MenuViewState extends State<MenuView> {
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFFFFD600),
         title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            FutureBuilder<String>(
+              future: _controller.usuarioLogadoPrimeiroNome(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Text(
+                  'Carregando...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'CarnevaleeFreakshow',
+                    color: Colors.black,
+                  ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Text(
+                  'Erro',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'CarnevaleeFreakshow',
+                    color: Colors.red,
+                  ),
+                  );
+                } else {
+                  return Text(
+                  'Bem-vindo, ${snapshot.data}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'CarnevaleeFreakshow',
+                    color: Colors.black,
+                  ),
+                  );
+                }
+              },
+            ),
+            SizedBox(height: 1),
             Row(
               children: [
                 Expanded(
                   // campo de pesquisa (lupa)
                   child: SizedBox(
-                    height: 40,
+                    height: 25,
                     child: TextField(
                       onChanged: (value) {
                         setState(() {
@@ -106,7 +143,6 @@ class _MenuViewState extends State<MenuView> {
                 ),
               ],
             ),
-            SizedBox(height: 10),
           ],
         ),
       ),

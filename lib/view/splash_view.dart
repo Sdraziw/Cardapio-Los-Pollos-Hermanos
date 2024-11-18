@@ -101,7 +101,7 @@ class SplashViewState extends State<SplashView> {
             child: Text(
               'Los Pollos Hermanos',
               style: TextStyle(
-                fontFamily: 'Arial', // Atualize para o nome da sua fonte
+                fontFamily: 'CarnevaleeFreakshow', // Atualize para o nome da sua fonte
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,

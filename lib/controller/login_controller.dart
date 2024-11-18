@@ -12,21 +12,19 @@ class LoginController {
   // no Firebase Authentication
   //
   void criarConta(context, nome, email, senha) {
-    auth.createUserWithEmailAndPassword(
+    auth
+        .createUserWithEmailAndPassword(
       email: email,
       password: senha,
-    ).then((value) {
-
+    )
+        .then((value) {
       //
       // ARMAZENAR o nome do usuário no Firestore
       //
-      FirebaseFirestore.instance.collection('usuarios')
-        .add(
-          {
-            'uid' : value.user!.uid,
-            'nome' : nome,
-          }
-        );
+      FirebaseFirestore.instance.collection('usuarios').add({
+        'uid': value.user!.uid,
+        'nome': nome,
+      });
 
       sucesso(context, 'Usuário criado com sucesso.');
       Navigator.pop(context);
@@ -50,9 +48,9 @@ class LoginController {
   // no serviço Firebase Authentication
   //
   void login(context, email, senha) {
-    auth.signInWithEmailAndPassword(
-      email: email, password: senha)
-    .then((value) {
+    auth
+        .signInWithEmailAndPassword(email: email, password: senha)
+        .then((value) {
       Navigator.pushReplacementNamed(context, 'menu');
     }).catchError((e) {
       switch (e.code) {
@@ -112,24 +110,39 @@ class LoginController {
   Future<String> usuarioLogadoNome() async {
     var nome = "";
     await FirebaseFirestore.instance
-      .collection('usuarios')
-      .where('uid', isEqualTo: idUsuario())
-      .get()
-      .then((value){
-        nome = value.docs[0].data()['nome']  ?? '';
-      });
+        .collection('usuarios')
+        .where('uid', isEqualTo: idUsuario())
+        .get()
+        .then((value) {
+      nome = value.docs[0].data()['nome'] ?? '';
+    });
     return nome;
   }
 
   Future<String> usuarioLogadoSenha() async {
     var senha = "";
     await FirebaseFirestore.instance
-      .collection('usuarios')
-      .where('uid', isEqualTo: idUsuario())
-      .get()
-      .then((value){
-        senha = value.docs[0].data()['senha']  ?? '';
-      });
+        .collection('usuarios')
+        .where('uid', isEqualTo: idUsuario())
+        .get()
+        .then((value) {
+      senha = value.docs[0].data()['senha'] ?? '';
+    });
     return senha;
+  }
+
+  Future<String> usuarioLogadoPrimeiroNome() async {
+    var nomeCompleto = "";
+    await FirebaseFirestore.instance
+        .collection('usuarios')
+        .where('uid', isEqualTo: idUsuario())
+        .get()
+        .then((value) {
+      nomeCompleto = value.docs[0].data()['nome'] ?? '';
+    });
+
+    // Extrair o primeiro nome
+    var primeiroNome = nomeCompleto.split(' ').first;
+    return primeiroNome;
   }
 }
