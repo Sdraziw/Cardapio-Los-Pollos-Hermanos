@@ -189,14 +189,21 @@ class _DetalhesViewState extends State<DetalhesView> {
                   // Adiciona o prato ao pedido usando o serviço
                   await pedidoService.adicionarAoPedido(dados, quantidade);
 
-                  // Exibir um snackbar ou diálogo confirmando a adição
+                  // Exibir um snackbar ou diálogo confirmando a adição e atualização dos itens no pedido se houver um item com mesmo nome para mesmo usuário no mesmo pedido consultando se há um pedido do usuário logado
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      backgroundColor: Colors.black.withOpacity(0.2),
-                      content: Text(
-                          'Adicionado $quantidade ${dados.nome}(s) ao pedido!'),
+                      content: Text('Item adicionado ao pedido'),
+                      duration: Duration(seconds: 2),
                     ),
                   );
+
+                  // Atualiza a lista de itens do pedido no carrinho passando como parâmetro o nome do prato
+                  await pedidoService.buscarItensPedido();
+                  await pedidoService.atualizarItensPedido();
+                  // Atualiza o status do pedido
+                  await pedidoService.atualizarStatusPedido('aguardando pagamento');
+                  // Atualiza o número do pedido
+                  await pedidoService.buscarNumeroPedido();
 
                   // Redireciona para a tela do carrinho
                   Navigator.push(

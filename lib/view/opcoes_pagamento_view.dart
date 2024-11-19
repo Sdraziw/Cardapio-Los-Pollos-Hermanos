@@ -23,7 +23,8 @@ class OpcoesPagamentoView extends StatelessWidget {
             GestureDetector(
               onTap: () async {
                 String numeroPedido = await pedidoService.gerarNumeroPedido();
-                await pedidoService.registrarHistorico(numeroPedido);
+                // Adicionar o código para pagamento via Pix
+                await pedidoService.registrarPagamento(numeroPedido, 'Pix');
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -47,7 +48,8 @@ class OpcoesPagamentoView extends StatelessWidget {
             GestureDetector(
               onTap: () async {
                 String numeroPedido = await pedidoService.gerarNumeroPedido();
-                await pedidoService.registrarHistorico(numeroPedido);
+                // Adicionar o código para pagamento via Pix
+                await pedidoService.registrarPagamento(numeroPedido, 'Cartão de Crédito');
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
