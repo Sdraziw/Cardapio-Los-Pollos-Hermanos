@@ -23,8 +23,19 @@ import 'package:los_pollos_hermanos/view/splash_view.dart';
 import 'package:los_pollos_hermanos/services/message_notifier.dart';
 import 'package:los_pollos_hermanos/services/pedido_service.dart';
 import 'package:los_pollos_hermanos/widgets/aurora_animation.dart'; // Importa a animação da aurora
+import 'dart:ui';
+import 'dart:typed_data';
 
 Future<void> main() async {
+  // Configure the ChannelBuffers to handle messages
+  ChannelBuffers channelBuffers = ChannelBuffers();
+  channelBuffers.setListener('flutter/lifecycle', (ByteData? data, PlatformMessageResponseCallback? callback) {
+    // Handle the message here
+    if (callback != null) {
+      callback(null);
+    }
+  });
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

@@ -57,6 +57,8 @@ class PedidoService {
         'nome': prato.nome,
         'preco': prato.preco,
         'quantidade': quantidade,
+        'imagem': prato.imagem,
+        'descricao': prato.descricao,
       });
     }
   }
@@ -95,6 +97,14 @@ class PedidoService {
       }
     }
     return null;
+  }
+
+  Future<void> atualizarStatusPedido(String status) async {
+    final user = auth.currentUser;
+    if (user != null) {
+      final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+      await pedidoRef.update({'status': status});
+    }
   }
 
   // Remove um prato do pedido

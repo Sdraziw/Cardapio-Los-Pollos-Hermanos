@@ -1,3 +1,3 @@
-# preojeto
+# los_pollos_hermanos
 
-A new Flutter project.
+A new restaurant project in Flutter.

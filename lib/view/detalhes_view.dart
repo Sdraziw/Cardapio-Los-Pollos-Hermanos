@@ -18,8 +18,10 @@ class DetalhesView extends StatefulWidget {
 
 class _DetalhesViewState extends State<DetalhesView> {
   int quantidade = 1; // Contador para a quantidade do prato
-  final pedidoService = GetIt.I<PedidoService>(); // Acessando o serviço de pedidos
-  final custom.MenuController menuController = custom.MenuController(); // Instância do MenuController
+  final pedidoService =
+      GetIt.I<PedidoService>(); // Acessando o serviço de pedidos
+  final custom.MenuController menuController =
+      custom.MenuController(); // Instância do MenuController
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,8 @@ class _DetalhesViewState extends State<DetalhesView> {
                 image: dados.imagem,
                 height: 200,
                 width: screenWidth, // Usando a largura da tela para a imagem
-                fitWeb: BoxFitWeb.cover, // A imagem cobre a largura com proporção mantida
+                fitWeb: BoxFitWeb
+                    .cover, // A imagem cobre a largura com proporção mantida
                 onLoading: const CircularProgressIndicator(
                   color: Colors.indigoAccent,
                 ),
@@ -54,7 +57,10 @@ class _DetalhesViewState extends State<DetalhesView> {
 
               // Descrição do prato usando FutureBuilder
               FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance.collection('itens_cardapio').doc(dados.nome).get(),
+                future: FirebaseFirestore.instance
+                    .collection('itens_cardapio')
+                    .doc(dados.nome)
+                    .get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return CircularProgressIndicator();
@@ -67,7 +73,8 @@ class _DetalhesViewState extends State<DetalhesView> {
                     return ListTile(
                       title: Text(
                         'Descrição',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
                         data['descricao'] ?? '',
@@ -82,7 +89,10 @@ class _DetalhesViewState extends State<DetalhesView> {
 
               // Preço do prato usando FutureBuilder
               FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance.collection('itens_cardapio').doc(dados.nome).get(),
+                future: FirebaseFirestore.instance
+                    .collection('itens_cardapio')
+                    .doc(dados.nome)
+                    .get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return CircularProgressIndicator();
@@ -96,11 +106,13 @@ class _DetalhesViewState extends State<DetalhesView> {
                     return ListTile(
                       title: Text(
                         'Preço',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
                         'R\$ ${preco.toStringAsFixed(2)}', // Exibindo o preço em formato monetário
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     );
                   }
@@ -146,7 +158,10 @@ class _DetalhesViewState extends State<DetalhesView> {
 
               // Exibição do total com base na quantidade selecionada
               FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance.collection('itens_cardapio').doc(dados.nome).get(),
+                future: FirebaseFirestore.instance
+                    .collection('itens_cardapio')
+                    .doc(dados.nome)
+                    .get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return CircularProgressIndicator();
@@ -159,7 +174,8 @@ class _DetalhesViewState extends State<DetalhesView> {
                     double preco = (data['preco'] as num).toDouble();
                     return Text(
                       'Total: R\$ ${(quantidade * preco).toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     );
                   }
                 },
@@ -176,16 +192,18 @@ class _DetalhesViewState extends State<DetalhesView> {
                   // Exibir um snackbar ou diálogo confirmando a adição
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Adicionado $quantidade ${dados.nome}(s) ao pedido!'),
+                      backgroundColor: Colors.black.withOpacity(0.2),
+                      content: Text(
+                          'Adicionado $quantidade ${dados.nome}(s) ao pedido!'),
                     ),
                   );
 
-                  // Redireciona para a tela de pedidos carrinho
+                  // Redireciona para a tela do carrinho
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            CarrinhoView()), // Navegar para a tela de pedidos
+                            CarrinhoView()), // Navegar para a tela do carrinho
                   );
                 },
                 style: ElevatedButton.styleFrom(
