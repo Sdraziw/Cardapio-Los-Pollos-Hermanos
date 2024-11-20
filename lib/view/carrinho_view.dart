@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/scheduler.dart';
 import '../services/pedido_service.dart';
 import '../model/itens_model.dart';
 
@@ -131,13 +132,15 @@ class CarrinhoViewState extends State<CarrinhoView> {
         adicionarAoPedido(pratoGratuito, 1);
         mensagemCodigo =
             'Código SOBREMESA2024 aplicado com sucesso! Sorvete Negresco adicionado ao pedido.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.green.withOpacity(0.5),
-            content: Text(
-                '🌵🌕👻🍦 SOBREMESA2024🦅🌕🌵 Aplicado com sucesso.'), //futuramente colocar o expirado
-          ),
-        );
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.green.withOpacity(0.5),
+              content: Text(
+                  '🌵🌕👻🍦 SOBREMESA2024🦅🌕🌵 Aplicado com sucesso.'), //futuramente colocar o expirado
+            ),
+          );
+        });
       });
     } else if ((codigo == 'LANCHE2024') && lanche2024 == true) {
       lanche2024 = false;
@@ -156,24 +159,28 @@ class CarrinhoViewState extends State<CarrinhoView> {
         adicionarAoPedido(pratoGratuito, 1);
         mensagemCodigo =
             'Código LANCHE2024 aplicado com sucesso! Lanche adicionado ao pedido.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.green.withOpacity(0.5),
-            content: Text(
-                '🌵🌞🤤🍔 LANCHE2024🌵🌞 Aplicado com sucesso.'), //futuramente colocar o expirado
-          ),
-        );
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.green.withOpacity(0.5),
+              content: Text(
+                  '🌵🌞🤤🍔 LANCHE2024🌵🌞 Aplicado com sucesso.'), //futuramente colocar o expirado
+            ),
+          );
+        });
       });
     } else {
       setState(() {
         mensagemCodigo = 'Código promocional inválido.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.red.withOpacity(0.5),
-            content: Text(
-                '😕 Código promocional inválido ou já aplicado.'), //futuramente colocar o expirado
-          ),
-        );
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red.withOpacity(0.5),
+              content: Text(
+                  '😕 Código promocional inválido ou já aplicado.'), //futuramente colocar o expirado
+            ),
+          );
+        });
       });
     }
   }
@@ -196,21 +203,19 @@ class CarrinhoViewState extends State<CarrinhoView> {
             onPressed: () async {
               await removerDoPedido(prato);
               setState(() {
-              
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    backgroundColor:
-                                        Colors.purple.withOpacity(0.5),
-                                    content: Text('item removido.❌'),
-                                    duration: Duration(seconds: 1),
-                                  ),
-                                );
-                              
+                SchedulerBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.purple.withOpacity(0.5),
+                      content: Text('item removido.❌'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                });
               });
               Navigator.of(context).pop();
             },
             child: Text('Remover'),
-            
           ),
         ],
       ),
@@ -234,7 +239,30 @@ class CarrinhoViewState extends State<CarrinhoView> {
           List<Map<String, dynamic>> itensCarrinho = snapshot.data!;
 
           if (itensCarrinho.isEmpty) {
-            return Center(child: Text('Seu carrinho está vazio.'));
+            SchedulerBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.black.withOpacity(0.5),
+                  content: Text(
+                      'Se seu pedido foi pago hoje ele está sendo separado após o pagamento!\nCaso o pedido estiver pago e ainda foi notificado este será notificado em breve!\n Verifique na tela de pedidos'),
+                ),
+              );
+            });
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Seu carrinho está vazio.'),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, 'historico');
+                    },
+                    icon: Icon(Icons.receipt_long),
+                    label: Text('Pedidos'),
+                  ),
+                ],
+              ),
+            );
           }
 
           double totalPedido = calcularTotalPedido(itensCarrinho);
@@ -255,89 +283,86 @@ class CarrinhoViewState extends State<CarrinhoView> {
                           : null,
                       title: Text(item['nome'] ?? 'Nome não disponível'),
                       subtitle: Text(
-                          '${item['descricao'] ?? 'Descrição não disponível'}\nQuantidade: ${item['quantidade'] ?? 0}'),
+                          '${item['descricao'] ?? 'Descrição não disponível'}\nQuantidade: ${item['quantidade'] ?? 0}\nPreço: R\$ ${(item['preco'] ?? 0.0).toStringAsFixed(2)}'),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // operador coalescência nula (??) implementada
                           IconButton(
-                            icon: Icon(Icons.remove), // Icone de menos
+                            icon: Icon(Icons.remove),
                             onPressed: () async {
                               if (item['quantidade'] > 1) {
                                 await adicionarAoPedido(
-                                    // adicionar ao pedido
-                                    Prato(
-                                        nome: item['nome'] ?? '',
-                                        descricao: item['descricao'] ?? '',
-                                        preco: item['preco'] ?? 0.0,
-                                        imagem: item['imagem'] ?? '',
-                                        resumo: item['resumo'] ?? '',
-                                        categoria: item['categoria'] ?? ''),
-                                    -1);
-                                // atualiza a tela com a quantidade subtraída
-                                await pedidoService
-                                    .verificarItemAdicionado(item['nome']);
-                                setState(() {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      backgroundColor:
-                                          Colors.red.withOpacity(0.5),
-                                      content: Text('quantidade subtraída.➖'),
-                                      duration: Duration(seconds: 1),
-                                    ),
-                                  );
-                                });
-                              } else {
-                                confirmarRemoverItem(Prato(
-                                    // confirmação de remoção
+                                  Prato(
                                     nome: item['nome'] ?? '',
                                     descricao: item['descricao'] ?? '',
                                     preco: item['preco'] ?? 0.0,
                                     imagem: item['imagem'] ?? '',
                                     resumo: item['resumo'] ?? '',
-                                    categoria: item['categoria'] ?? ''));
-                              }
-                              await pedidoService
-                                  .verificarItemAdicionado(item['nome']);
-                              
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.add), // Icone de mais
-                            onPressed: () async {
-                              await adicionarAoPedido(
-                                  Prato(
-                                      nome: item['nome'] ?? '',
-                                      descricao: item['descricao'] ?? '',
-                                      preco: item['preco'] ?? 0.0,
-                                      imagem: item['imagem'] ?? '',
-                                      resumo: item['resumo'] ?? '',
-                                      categoria: item['categoria'] ?? ''),
-                                  1);
-                              await pedidoService
-                                  .verificarItemAdicionado(item['nome']);
-                              setState(() {
+                                    categoria: item['categoria'] ?? '',
+                                  ),
+                                  -1,
+                                );
+                                setState(() {});
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    backgroundColor:
-                                        Colors.green.withOpacity(0.5),
-                                    content: Text('quantidade adicionada.➕'),
+                                    backgroundColor: Colors.red.withOpacity(0.5),
+                                    content: Text('Quantidade subtraída.➖'),
                                     duration: Duration(seconds: 1),
                                   ),
                                 );
-                              });
+                              } else {
+                                confirmarRemoverItem(
+                                  Prato(
+                                    nome: item['nome'] ?? '',
+                                    descricao: item['descricao'] ?? '',
+                                    preco: item['preco'] ?? 0.0,
+                                    imagem: item['imagem'] ?? '',
+                                    resumo: item['resumo'] ?? '',
+                                    categoria: item['categoria'] ?? '',
+                                  ),
+                                );
+                              }
+                              await pedidoService.verificarItemAdicionado(item['nome']);
                             },
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete), // Icone de lixeira
-                            onPressed: () {
-                              confirmarRemoverItem(Prato(
+                            icon: Icon(Icons.add),
+                            onPressed: () async {
+                              await adicionarAoPedido(
+                                Prato(
                                   nome: item['nome'] ?? '',
                                   descricao: item['descricao'] ?? '',
                                   preco: item['preco'] ?? 0.0,
                                   imagem: item['imagem'] ?? '',
                                   resumo: item['resumo'] ?? '',
-                                  categoria: item['categoria'] ?? ''));
+                                  categoria: item['categoria'] ?? '',
+                                ),
+                                1,
+                              );
+                              await pedidoService.verificarItemAdicionado(item['nome']);
+                              setState(() {});
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: Colors.green.withOpacity(0.5),
+                                  content: Text('Quantidade adicionada.➕'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              confirmarRemoverItem(
+                                Prato(
+                                  nome: item['nome'] ?? '',
+                                  descricao: item['descricao'] ?? '',
+                                  preco: item['preco'] ?? 0.0,
+                                  imagem: item['imagem'] ?? '',
+                                  resumo: item['resumo'] ?? '',
+                                  categoria: item['categoria'] ?? '',
+                                ),
+                              );
                             },
                           ),
                         ],
@@ -387,7 +412,8 @@ class CarrinhoViewState extends State<CarrinhoView> {
                     ),
                     CheckboxListTile(
                       title: Text("Incluir gorjeta de $percentualGorjeta%"),
-                      subtitle: Text("A gorjeta não é obrigatória."),
+                      subtitle: Text("A gorjeta não é obrigatória."
+                      ,),
                       value: incluirGorjeta,
                       onChanged: (bool? value) {
                         setState(() {
@@ -445,7 +471,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                     SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () async {
-                        await atualizarStatusPedido('preparando');
+                        await atualizarStatusPedido('aguardando pagamento');
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             backgroundColor: Colors.black.withOpacity(0.5),
