@@ -38,15 +38,15 @@ class CarrinhoViewState extends State<CarrinhoView> {
         final pedidoRef = firestore.collection('pedidos').doc(user.uid);
         final pedidoDoc = await pedidoRef.get();
 
-        if (pedidoDoc.exists && pedidoDoc['status'] == 'aguardando pagamento') {
+        if (pedidoDoc.exists && pedidoDoc['status'] == 'novo pedido') {
           setState(() {
             // Atualiza a tela com o pedido existente
           });
         } else {
-          int novoNumeroPedido = await obterProximoNumeroPedido();
+          int novoNumeroPedido = await pedidoService.obterProximoNumeroPedido();
           await pedidoRef.set({
             'numero_pedido': novoNumeroPedido,
-            'status': 'aguardando pagamento',
+            'status': 'novo pedido',
             'data': FieldValue.serverTimestamp(),
           });
           setState(() {
@@ -124,7 +124,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
             "Sorvete Negresco é feito de leite condensado, leite, biscoitos Negresco, essência de baunilha, ovos, açúcar e creme de leite. Bem simples e delicioso! 🍦",
         resumo: 'Casquinha Recheada e Massa Baunilha',
         quantidade: 1,
-        status: 'aguardando pagamento',
+        status: 'retirar no balcão',
         cupom: true,
         categoria: 'Sobremesas',
       );
@@ -147,11 +147,11 @@ class CarrinhoViewState extends State<CarrinhoView> {
       pratoGratuito = Prato(
         nome: "🎃👻LANCHE2024 🍔- Cê é LOCO cachoeira",
         preco: 0.0,
-        imagem: "lib/images/slc que imagem.jpeg",
+        imagem: 'lib/images/promo_image.png',
         descricao: "Pão de hamburguer, Frango Parrudo Empanado, Molho Barbecue",
         resumo: 'Lanche parrudo | 200g 🍔',
         quantidade: 1,
-        status: 'aguardando pagamento',
+        status: 'retirar no balcão',
         cupom: true,
         categoria: 'Lanches',
       );
@@ -244,7 +244,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                 SnackBar(
                   backgroundColor: Colors.black.withOpacity(0.5),
                   content: Text(
-                      'Se seu pedido foi pago hoje ele está sendo separado após o pagamento!\nCaso o pedido estiver pago e ainda foi notificado este será notificado em breve!\n Verifique na tela de pedidos'),
+                      'Se o seu pedido foi pago, ele está sendo separado e será notificado em breve.\nCaso já tenha realizado o pagamento e ainda não tenha sido notificado, aguarde, pois a notificação será enviada em breve.\nPara mais detalhes, verifique o status do pedido na tela de pedidos.'),
                 ),
               );
             });
@@ -327,7 +327,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                           ),
                           IconButton(
                             icon: Icon(Icons.add),
-                            onPressed: () async {
+                            onPressed: item['cupom'] == true ? null : () async { // Adicionando a condição para não permitir adicionar mais de um item com cupom
                               await adicionarAoPedido(
                                 Prato(
                                   nome: item['nome'] ?? '',

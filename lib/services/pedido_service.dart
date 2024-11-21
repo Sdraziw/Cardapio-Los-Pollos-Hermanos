@@ -52,6 +52,10 @@ class PedidoService {
           'preco': prato.preco,
           'quantidade': quantidade,
           'imagem': prato.imagem,
+          'cupom': prato.cupom,
+          'categoria': prato.categoria,
+          'resumo': prato.resumo,
+          'status': prato.status,
         });
       } else {
         QuerySnapshot query = await itensRef.where('nome', isEqualTo: prato.nome).get();

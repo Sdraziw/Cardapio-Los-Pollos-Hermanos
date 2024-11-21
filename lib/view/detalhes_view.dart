@@ -193,7 +193,7 @@ class _DetalhesViewState extends State<DetalhesView> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Item adicionado ao pedido'),
-                      duration: Duration(seconds: 2),
+                      duration: Duration(seconds: 1),
                     ),
                   );
 
