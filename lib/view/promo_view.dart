@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import '../model/itens_model.dart'; // Certifique-se de que o caminho está correto
 
 class PromoView extends StatelessWidget {
-  const PromoView({super.key});
+  PromoView({super.key});
+
+  final List<Prato> pedido = [];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cê é LOCO cachoeira! '),
-        backgroundColor: Colors.red, // Cor do AppBar
-      ),
-      body: Container(
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Cê é LOCO cachoeira! '),
+          backgroundColor: Colors.red, // Cor do AppBar
+        ),
+        body: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -135,5 +138,66 @@ class PromoView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Aplicar código promocional e adicionar item ao pedido se o código for válido
+  void aplicarCodigoPromocional(BuildContext context, String codigo) {
+    bool lanche2024 = true;
+    bool sobremesa2024 = true;
+    Prato? pratoGratuito;
+
+    if ((codigo == 'SOBREMESA2024') && sobremesa2024 == true) {
+      sobremesa2024 = false;
+      pratoGratuito = Prato(
+        nome: "🎃👻SOBREMESA2024 🍦- Sorvete Negresco",
+        preco: 0.0,
+        imagem: "lib/images/ice-cream.webp",
+        descricao:
+            "Sorvete Negresco é feito de leite condensado, leite, biscoitos Negresco, essência de baunilha, ovos, açúcar e creme de leite. Bem simples e delicioso! 🍦",
+        resumo: 'Casquinha Recheada e Massa Baunilha',
+        quantidade: 1,
+        item_pacote: 'a retirar no balcão',
+        cupom: true,
+        categoria: 'Sobremesas',
+      );
+      // Adicione o prato gratuito ao pedido ou faça outra ação necessária
+      pedido.add(pratoGratuito);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green.withOpacity(0.5),
+          content: Text(
+              '🌵🌕👻🍦 SOBREMESA2024🦅🌕🌵 Aplicado com sucesso.'), //futuramente colocar o expirado
+        ),
+      );
+    } else if ((codigo == 'LANCHE2024') && lanche2024 == true) {
+      lanche2024 = false;
+      pratoGratuito = Prato(
+        nome: "🎃👻LANCHE2024 🍔- Cê é LOCO cachoeira",
+        preco: 0.0,
+        imagem: 'lib/images/promo_image.png',
+        descricao: "Pão de hamburguer, Frango Parrudo Empanado, Molho Barbecue",
+        resumo: 'Lanche parrudo | 200g 🍔',
+        quantidade: 1,
+        item_pacote: 'a retirar no balcão',
+        cupom: true,
+        categoria: 'Lanches',
+      );
+      // Adicione o prato gratuito ao pedido ou faça outra ação necessária
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green.withOpacity(0.5),
+          content: Text(
+              '🌵🌞🤤🍔 LANCHE2024🌵🌞 Aplicado com sucesso.'), //futuramente colocar o expirado
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red.withOpacity(0.5),
+          content: Text(
+              '😕 Código promocional inválido ou já aplicado.'), //futuramente colocar o expirado
+        ),
+      );
+    }
   }
 }

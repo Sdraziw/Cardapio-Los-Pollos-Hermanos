@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/scheduler.dart';
 import '../services/pedido_service.dart';
 import '../model/itens_model.dart';
+import '../view/promo_view.dart'; // Add this line to import PromoView
 
 class CarrinhoView extends StatefulWidget {
   const CarrinhoView({super.key});
@@ -28,59 +29,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
   @override
   void initState() {
     super.initState();
-    verificarPedidoExistente();
-  }
-
-  // Verifica se já existe um pedido em andamento para o usuário logado e cria um novo pedido se não existir um pedido em andamento
-  Future<void> verificarPedidoExistente() async {
-    final user = auth.currentUser;
-    if (user != null) {
-      try {
-        final pedidoRef = firestore.collection('pedidos').doc(user.uid);
-        final pedidoDoc = await pedidoRef.get();
-
-        if (pedidoDoc.exists) {
-          String statusPedido = pedidoDoc['status'];
-          if (statusPedido == 'novo pedido' || statusPedido == 'aguardando pagamento') {
-            setState(() {
-              // Atualiza a tela com o pedido existente de status novo pedido ou aguardando pagamento
-              PedidoService().atualizarStatusPedido(statusPedido);
-            });
-          } else if (statusPedido == 'pagamento confirmado') {
-            // Mantém o pedido com status "pagamento confirmado" e cria um novo pedido
-            int novoNumeroPedido = await pedidoService.obterProximoNumeroPedido();
-            await firestore.collection('pedidos').add({
-              'uid': user.uid,
-              'numero_pedido': novoNumeroPedido,
-              'status': 'novo pedido',
-              'data': FieldValue.serverTimestamp(),
-            });
-            setState(() {
-              // Atualiza a tela com o novo pedido criado
-              PedidoService().atualizarStatusPedido('novo pedido');
-            });
-          } else {
-            // Mantém o pedido com status diferente de "novo pedido" ou "aguardando pagamento"
-            setState(() {
-              mensagemErro = 'Você não pode modificar um pedido com status "$statusPedido".';
-            });
-          }
-        } else {
-          int novoNumeroPedido = await PedidoService().obterProximoNumeroPedido();
-          await pedidoRef.set({
-            'numero_pedido': novoNumeroPedido,
-            'status': 'novo pedido',
-            'data': FieldValue.serverTimestamp(),
-          });
-          setState(() {
-            // Atualiza a tela com o novo pedido criado
-            PedidoService().atualizarStatusPedido('novo pedido');
-          });
-        }
-      } catch (e) {
-        print('Erro ao verificar pedido existente: $e');
-      }
-    }
+    pedidoService.verificarPedidoExistente();
   }
 
   Future<void> obterProximoNumeroPedido(double novoNumeroPedido) async {
@@ -91,14 +40,18 @@ class CarrinhoViewState extends State<CarrinhoView> {
     }
   }
 
-  Future<void> atualizarStatusPedido(String status) async {
+  Future<void> atualizarStatus(String status) async {
     final user = auth.currentUser;
     if (user != null) {
       try {
-        await pedidoService.atualizarStatusPedido(status);
+        final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+        await pedidoRef.update({'status': status});
+        print('Status atualizado com sucesso para: $status');
       } catch (e) {
-        print('Erro ao atualizar status do pedido: $e');
+        print('Erro ao atualizar status: $e');
       }
+    } else {
+      print('Usuário não autenticado.');
     }
   }
 
@@ -118,87 +71,12 @@ class CarrinhoViewState extends State<CarrinhoView> {
     }
   }
 
-  void aplicarCodigoPromocional(String codigo) {
-    Prato pratoGratuito;
-
-    if ((codigo == 'SOBREMESA2024') && sobremesa2024 == true) {
-      sobremesa2024 = false;
-      pratoGratuito = Prato(
-        nome: "🎃👻SOBREMESA2024 🍦- Sorvete Negresco",
-        preco: 0.0,
-        imagem: "lib/images/ice-cream.webp",
-        descricao:
-            "Sorvete Negresco é feito de leite condensado, leite, biscoitos Negresco, essência de baunilha, ovos, açúcar e creme de leite. Bem simples e delicioso! 🍦",
-        resumo: 'Casquinha Recheada e Massa Baunilha',
-        quantidade: 1,
-        item_pacote: 'a retirar no balcão',
-        cupom: true,
-        categoria: 'Sobremesas',
-      );
-      setState(() {
-        adicionarAoPedido(pratoGratuito, 1);
-        mensagemCodigo =
-            'Código SOBREMESA2024 aplicado com sucesso! Sorvete Negresco adicionado ao pedido.';
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.green.withOpacity(0.5),
-              content: Text(
-                  '🌵🌕👻🍦 SOBREMESA2024🦅🌕🌵 Aplicado com sucesso.'), //futuramente colocar o expirado
-            ),
-          );
-        });
-      });
-    } else if ((codigo == 'LANCHE2024') && lanche2024 == true) {
-      lanche2024 = false;
-      pratoGratuito = Prato(
-        nome: "🎃👻LANCHE2024 🍔- Cê é LOCO cachoeira",
-        preco: 0.0,
-        imagem: 'lib/images/promo_image.png',
-        descricao: "Pão de hamburguer, Frango Parrudo Empanado, Molho Barbecue",
-        resumo: 'Lanche parrudo | 200g 🍔',
-        quantidade: 1,
-        item_pacote: 'a retirar no balcão',
-        cupom: true,
-        categoria: 'Lanches',
-      );
-      setState(() {
-        adicionarAoPedido(pratoGratuito, 1);
-        mensagemCodigo =
-            'Código LANCHE2024 aplicado com sucesso! Lanche adicionado ao pedido.';
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.green.withOpacity(0.5),
-              content: Text(
-                  '🌵🌞🤤🍔 LANCHE2024🌵🌞 Aplicado com sucesso.'), //futuramente colocar o expirado
-            ),
-          );
-        });
-      });
-    } else {
-      setState(() {
-        mensagemCodigo = 'Código promocional inválido.';
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.red.withOpacity(0.5),
-              content: Text(
-                  '😕 Código promocional inválido ou já aplicado.'), //futuramente colocar o expirado
-            ),
-          );
-        });
-      });
-    }
-  }
-
   void confirmarRemoverItem(Prato prato) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Remover Item'),
-        content:
-            Text('Tem certeza que deseja remover "${prato.nome}" do pedido?'),
+        content: Text('Tem certeza que deseja remover "${prato.nome}" do pedido?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -229,6 +107,15 @@ class CarrinhoViewState extends State<CarrinhoView> {
     );
   }
 
+  Future<void> aplicarCodigoPromocional(String codigo) async {
+    try {
+      final promoView = PromoView();
+      promoView.aplicarCodigoPromocional(context, codigo);
+    } catch (e) {
+      print('Erro ao aplicar código promocional: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -236,35 +123,18 @@ class CarrinhoViewState extends State<CarrinhoView> {
         title: Text('Meu Carrinho'),
         backgroundColor: Color(0xFFFFD600),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: pedidoService.buscarItensPedido(),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: pedidoService.buscarItensPedidoStream(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());
           }
-
-          List<Map<String, dynamic>> itensCarrinho = snapshot.data!;
-
-          // Verificação e ajuste da quantidade de itens aplicados como cupom
-          for (var item in itensCarrinho) {
-            if (item['cupom'] == true && item['quantidade'] > 1) {
-              item['quantidade'] = 1;
-            }
+          if (snapshot.hasError) {
+            return Center(child: Text('Erro ao carregar itens do carrinho.'));
           }
+          List<Map<String, dynamic>>? itensCarrinho = snapshot.data;
 
-          // Verificação de pedido com status de novo pedido e cupom igual a true
-          bool temCupom = itensCarrinho.any((item) => item['cupom'] == true);
-          bool temNovoPedido = itensCarrinho.any((item) => item['status'] == 'novo pedido');
-
-          if (temCupom && temNovoPedido) {
-            for (var item in itensCarrinho) {
-              if (item['cupom'] == true) {
-                item['quantidade'] = 1;
-              }
-            }
-          }
-
-          if (itensCarrinho.isEmpty) {
+          if (itensCarrinho == null || itensCarrinho.isEmpty) {
             SchedulerBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -291,6 +161,25 @@ class CarrinhoViewState extends State<CarrinhoView> {
             );
           }
 
+          // Verificação e ajuste da quantidade de itens aplicados como cupom
+          for (var item in itensCarrinho) {
+            if (item['cupom'] == true && item['quantidade'] > 1) {
+              item['quantidade'] = 1;
+            }
+          }
+
+          // Verificação de pedido com status de novo pedido e cupom igual a true
+          bool temCupom = itensCarrinho.any((item) => item['cupom'] == true);
+          bool temNovoPedido = itensCarrinho.any((item) => item['status'] == 'novo pedido');
+
+          if (temCupom && temNovoPedido) {
+            for (var item in itensCarrinho) {
+              if (item['cupom'] == true) {
+                item['quantidade'] = 1;
+              }
+            }
+          }
+
           double totalPedido = calcularTotalPedido(itensCarrinho);
           double totalComGorjeta = incluirGorjeta
               ? totalPedido * (1 + (percentualGorjeta / 100))
@@ -309,7 +198,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                           : null,
                       title: Text(item['nome'] ?? 'Nome não disponível'),
                       subtitle: Text(
-                          '${item['descricao'] ?? 'Descrição não disponível'}\nQuantidade: ${item['quantidade'] ?? 0}\nPreço: R\$ ${(item['preco'] ?? 0.0).toStringAsFixed(2)}'),
+                          '${item['descricao'] ?? 'Descrição não disponível'}\nQuantidade: ${item['quantidade'] ?? 0}\nPreço: R\$ ${(item['preco']?.toDouble() ?? 0.0).toStringAsFixed(2)}'),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -321,11 +210,13 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                   Prato(
                                     nome: item['nome'] ?? '',
                                     descricao: item['descricao'] ?? '',
-                                    preco: item['preco'] ?? 0.0,
+                                    preco: item['preco']?.toDouble() ?? 0.0,
                                     imagem: item['imagem'] ?? '',
                                     resumo: item['resumo'] ?? '',
-                                    categoria: item['categoria'] ?? '',
+                                    quantidade: item['quantidade']?.toInt() ?? 0,
                                     item_pacote: item['item_pacote'] ?? '',
+                                    cupom: item['cupom'] ?? false,
+                                    categoria: item['categoria'] ?? '',
                                   ),
                                   -1,
                                 );
@@ -342,11 +233,13 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                   Prato(
                                     nome: item['nome'] ?? '',
                                     descricao: item['descricao'] ?? '',
-                                    preco: item['preco'] ?? 0.0,
+                                    preco: item['preco']?.toDouble() ?? 0.0,
                                     imagem: item['imagem'] ?? '',
                                     resumo: item['resumo'] ?? '',
-                                    categoria: item['categoria'] ?? '',
+                                    quantidade: item['quantidade']?.toInt() ?? 0,
                                     item_pacote: item['item_pacote'] ?? '',
+                                    cupom: item['cupom'] ?? false,
+                                    categoria: item['categoria'] ?? '',
                                   ),
                                 );
                               }
@@ -355,16 +248,18 @@ class CarrinhoViewState extends State<CarrinhoView> {
                           ),
                           IconButton(
                             icon: Icon(Icons.add),
-                            onPressed: item['cupom'] == true ? null : () async { // Adicionando a condição para não permitir adicionar mais de um item com cupom
+                            onPressed: item['cupom'] == true ? null : () async {
                               await adicionarAoPedido(
                                 Prato(
                                   nome: item['nome'] ?? '',
                                   descricao: item['descricao'] ?? '',
-                                  preco: item['preco'] ?? 0.0,
+                                  preco: item['preco']?.toDouble() ?? 0.0,
                                   imagem: item['imagem'] ?? '',
                                   resumo: item['resumo'] ?? '',
-                                  categoria: item['categoria'] ?? '',
+                                  quantidade: item['quantidade']?.toInt() ?? 0,
                                   item_pacote: item['item_pacote'] ?? '',
+                                  cupom: item['cupom'] ?? false,
+                                  categoria: item['categoria'] ?? '',
                                 ),
                                 1,
                               );
@@ -386,11 +281,13 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                 Prato(
                                   nome: item['nome'] ?? '',
                                   descricao: item['descricao'] ?? '',
-                                  preco: item['preco'] ?? 0.0,
+                                  preco: item['preco']?.toDouble() ?? 0.0,
                                   imagem: item['imagem'] ?? '',
                                   resumo: item['resumo'] ?? '',
-                                  categoria: item['categoria'] ?? '',
+                                  quantidade: item['quantidade']?.toInt() ?? 0,
                                   item_pacote: item['item_pacote'] ?? '',
+                                  cupom: item['cupom'] ?? false,
+                                  categoria: item['categoria'] ?? '',
                                 ),
                               );
                             },
@@ -432,8 +329,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                         aplicarCodigoPromocional(codigoPromocional);
                       },
                       style: ElevatedButton.styleFrom(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                         textStyle: TextStyle(fontSize: 18),
                         backgroundColor: Color(0xFFFFD600),
                         foregroundColor: Colors.black,
@@ -442,8 +338,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                     ),
                     CheckboxListTile(
                       title: Text("Incluir gorjeta de $percentualGorjeta%"),
-                      subtitle: Text("A gorjeta não é obrigatória."
-                      ,),
+                      subtitle: Text("A gorjeta não é obrigatória."),
                       value: incluirGorjeta,
                       onChanged: (bool? value) {
                         setState(() {
@@ -460,13 +355,10 @@ class CarrinhoViewState extends State<CarrinhoView> {
                         keyboardType: TextInputType.number,
                         onChanged: (value) {
                           setState(() {
-                            if (RegExp(r'^[0-9]*[.,]?[0-9]*$')
-                                .hasMatch(value)) {
+                            if (RegExp(r'^[0-9]*[.,]?[0-9]*$').hasMatch(value)) {
                               mensagemErro = '';
-                              double? novoPercentual =
-                                  double.tryParse(value.replaceAll(',', '.'));
-                              if (novoPercentual != null &&
-                                  novoPercentual > 0) {
+                              double? novoPercentual = double.tryParse(value.replaceAll(',', '.'));
+                              if (novoPercentual != null && novoPercentual > 0) {
                                 percentualGorjeta = novoPercentual;
                               } else {
                                 percentualGorjeta = 10.0;
@@ -489,32 +381,27 @@ class CarrinhoViewState extends State<CarrinhoView> {
                     SizedBox(height: 10),
                     Text(
                       'Total: R\$ ${totalPedido.toStringAsFixed(2)}',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     if (incluirGorjeta)
                       Text(
                         'Total com ${percentualGorjeta.toStringAsFixed(1)}% de gorjeta: R\$ ${totalComGorjeta.toStringAsFixed(2)}',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                     SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () async {
-                        await atualizarStatusPedido('aguardando pagamento');
+                        await atualizarStatus('aguardando pagamento');
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             backgroundColor: Colors.black.withOpacity(0.5),
-                            content: Text(
-                                '💳 Status: aguardando pagamento 💵\nSeu pedido será separado após o pagamento!'),
+                            content: Text('💳 Status: aguardando pagamento 💵\nSeu pedido será separado após o pagamento!'),
                           ),
                         );
-                        Navigator.pushNamed(context, 'pagamento',
-                            arguments: totalComGorjeta);
+                        Navigator.pushNamed(context, 'pagamento', arguments: totalComGorjeta);
                       },
                       style: ElevatedButton.styleFrom(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                         textStyle: TextStyle(fontSize: 18),
                         backgroundColor: Color(0xFFFFD600),
                         foregroundColor: Colors.black,
@@ -535,7 +422,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
   double calcularTotalPedido(List<Map<String, dynamic>> itensCarrinho) {
     double total = 0;
     for (var item in itensCarrinho) {
-      total += item['quantidade'] * item['preco'];
+      total += (item['quantidade']?.toDouble() ?? 0) * (item['preco']?.toDouble() ?? 0.0);
     }
     return total;
   }

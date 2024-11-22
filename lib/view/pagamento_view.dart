@@ -15,7 +15,7 @@ class _PagamentoViewState extends State<PagamentoView> {
   String _nomeUsuario = '';
   String _nomeCompletoUsuario = '';
   int _numeroPedido = 0;
-  String _statusPedido = '';
+  String _status = '';
   String _uid = '';
   final LoginController loginController = LoginController();
 
@@ -41,7 +41,7 @@ class _PagamentoViewState extends State<PagamentoView> {
       if (pedidoDoc.exists) {
         setState(() {
           _numeroPedido = pedidoDoc['numero_pedido'];
-          _statusPedido = pedidoDoc['status'];
+          _status = pedidoDoc['status'];
           _uid = user.uid;
         });
       }
@@ -108,7 +108,7 @@ class _PagamentoViewState extends State<PagamentoView> {
             SizedBox(height: 10),
             // Exibir o status do pedido
             Text(
-              'Status do Pedido: $_statusPedido',
+              'Status do Pedido: $_status',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

@@ -25,6 +25,7 @@ import 'package:los_pollos_hermanos/services/pedido_service.dart';
 import 'package:los_pollos_hermanos/widgets/aurora_animation.dart'; // Importa a animação da aurora
 import 'dart:ui';
 import 'dart:typed_data';
+import 'package:get_it/get_it.dart';
 
 Future<void> main() async {
   // Configure the ChannelBuffers to handle messages
@@ -39,7 +40,14 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  setupservice(); // Registrar o serviço de pedidos antes de executar o app
+
+  void setupservice() {
+    GetIt.I.registerSingleton<PedidoService>(PedidoService()); // Registrar o serviço de pedidos antes de executar o app
+    GetIt.I.registerSingleton<PromoView>(PromoView());
+  }
+
+  setupservice();
+
   runApp(
     //home: AuroraAnimation(), // Usa a animação da aurora como tela inicial
     DevicePreview(
@@ -50,6 +58,7 @@ Future<void> main() async {
     ),
   );
 }
+
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
@@ -70,8 +79,8 @@ class MainApp extends StatelessWidget {
         'perfil': (context) => PerfilView(),
         'pagamento': (context) => PagamentoView(),
         'opcoes_pagamento': (context) => OpcoesPagamentoView(),
-        'promo': (context) => const PromoView(),
-        'promo2': (context) => const Promo2View(),
+        'promo': (context) => PromoView(),
+        'promo2': (context) => Promo2View(),
         'aurora': (context) => const AuroraAnimation(),
         'historico': (context) => HistoricoView(),
         'splash': (context) => SplashView(),

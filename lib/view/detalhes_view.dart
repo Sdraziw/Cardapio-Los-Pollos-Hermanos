@@ -201,7 +201,7 @@ class _DetalhesViewState extends State<DetalhesView> {
                   await pedidoService.buscarItensPedido();
                   //await pedidoService.atualizarItensPedido();
                   // Atualiza o status do pedido
-                  await pedidoService.atualizarStatusPedido('aguardando pagamento');
+                  await pedidoService.atualizarstatus('novo pedido');
                   // Atualiza o número do pedido
                   await pedidoService.buscarNumeroPedido();
 

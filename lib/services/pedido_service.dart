@@ -5,6 +5,7 @@ import '../model/itens_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class PedidoService {
+  String mensagemErro = '';
   static const String _historicoKey = 'historicoPedidos';
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -60,6 +61,30 @@ class PedidoService {
     return [];
   }
 
+  Stream<List<Map<String, dynamic>>> buscarItensPedidoStream() {
+    final user = auth.currentUser;
+    if (user != null) {
+      final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+      return pedidoRef.collection('itens').snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          return {
+            'nome': data['nome'] ?? '',
+            'descricao': data['descricao'] ?? '',
+            'preco': (data['preco'] as num?)?.toDouble() ?? 0.0,
+            'imagem': data['imagem'] ?? '',
+            'resumo': data['resumo'] ?? '',
+            'quantidade': data['quantidade'] ?? 0,
+            'item_pacote': data['item_pacote'] ?? '',
+            'cupom': data['cupom'] ?? false,
+            'categoria': data['categoria'] ?? '',
+          };
+        }).toList();
+      });
+    }
+    return Stream.value([]);
+  }
+
   Future<int?> buscarNumeroPedido() async {
     final user = auth.currentUser;
     if (user != null) {
@@ -72,11 +97,18 @@ class PedidoService {
     return null;
   }
 
-  Future<void> atualizarStatusPedido(String status) async {
+  Future<void> atualizarStatus(String status) async {
     final user = auth.currentUser;
     if (user != null) {
-      final pedidoRef = firestore.collection('pedidos').doc(user.uid);
-      await pedidoRef.update({'status': status});
+      try {
+        final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+        await pedidoRef.update({'status': status});
+        print('Status atualizado com sucesso para: $status');
+      } catch (e) {
+        print('Erro ao atualizar status: $e');
+      }
+    } else {
+      print('Usuário não autenticado.');
     }
   }
 
@@ -173,6 +205,58 @@ class PedidoService {
       return querySnapshot.docs.map((doc) => doc.data()).toList();
     }
     return [];
+  }
+
+  // Verifica se já existe um pedido em andamento para o usuário logado e cria um novo pedido se não existir um pedido em andamento
+  Future<void> verificarPedidoExistente() async {
+    final user = auth.currentUser;
+    if (user != null) {
+      try {
+        final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+        final pedidoDoc = await pedidoRef.get();
+
+        if (pedidoDoc.exists) {
+          String status = pedidoDoc['status'];
+          if (status == 'novo pedido' || status == 'aguardando pagamento' || status == 'pedido aberto') {
+            
+              // Atualiza a tela com o pedido existente de status novo pedido ou aguardando pagamento
+              atualizarStatus(status);
+            
+          } else if (status == 'pagamento confirmado') {
+            // Mantém o pedido com status "pagamento confirmado" e cria um novo pedido
+            int novoNumeroPedido = await obterProximoNumeroPedido();
+            await firestore.collection('pedidos').add({
+              'uid': user.uid,
+              'numero_pedido': novoNumeroPedido,
+              'status': 'novo pedido',
+              'data': FieldValue.serverTimestamp(),
+            });
+            
+              // Atualiza a tela com o novo pedido criado
+              atualizarStatus('novo pedido');
+            
+          } else {
+            // Mantém o pedido com status diferente de "novo pedido" ou "aguardando pagamento"
+            
+              mensagemErro = 'Você não pode modificar um pedido com status "$status".';
+            
+          }
+        } else {
+          int novoNumeroPedido = await obterProximoNumeroPedido();
+          await pedidoRef.set({
+            'numero_pedido': novoNumeroPedido,
+            'status': 'pedido aberto',
+            'data': FieldValue.serverTimestamp(),
+          });
+          
+            // Atualiza a tela com o novo pedido criado
+            atualizarStatus('pedido aberto');
+          
+        }
+      } catch (e) {
+        print('Erro ao verificar pedido existente: $e');
+      }
+    }
   }
 
   Future<List<String>> obterHistorico() async {
