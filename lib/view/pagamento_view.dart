@@ -13,9 +13,11 @@ class PagamentoView extends StatefulWidget {
 
 class _PagamentoViewState extends State<PagamentoView> {
   String _nomeUsuario = '';
+  String _nomeCompletoUsuario = '';
   int _numeroPedido = 0;
   String _statusPedido = '';
-  final LoginController _loginController = LoginController();
+  String _uid = '';
+  final LoginController loginController = LoginController();
 
   @override
   void initState() {
@@ -25,7 +27,8 @@ class _PagamentoViewState extends State<PagamentoView> {
   }
 
   Future<void> _carregarNomeUsuario() async {
-    _nomeUsuario = await _loginController.usuarioLogadoPrimeiroNome();
+    _nomeUsuario = await loginController.usuarioLogadoPrimeiroNome();
+    _nomeCompletoUsuario = await loginController.usuarioLogadoNome();
     setState(() {});
   }
 
@@ -33,12 +36,13 @@ class _PagamentoViewState extends State<PagamentoView> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final pedidoRef = FirebaseFirestore.instance.collection('pedidos').doc(user.uid);
-      final pedidoDoc = await pedidoRef.get();
+      final pedidoDoc = await pedidoRef.get(); //trava aqui e não continua depois de pegar o pedido do banco
 
       if (pedidoDoc.exists) {
         setState(() {
           _numeroPedido = pedidoDoc['numero_pedido'];
           _statusPedido = pedidoDoc['status'];
+          _uid = user.uid;
         });
       }
     }
@@ -76,7 +80,18 @@ class _PagamentoViewState extends State<PagamentoView> {
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue,
-                fontFamily: 'Arial',
+                fontFamily: 'CarnevaleeFreakshow',
+              ),
+            ),
+            SizedBox(height: 10),
+            // Exibir o nome completo do usuário
+            Text(
+              'Nome Completo: $_nomeCompletoUsuario',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+                fontFamily: 'CarnevaleeFreakshow',
               ),
             ),
             SizedBox(height: 10),
@@ -87,7 +102,7 @@ class _PagamentoViewState extends State<PagamentoView> {
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Colors.green,
-                fontFamily: 'Times New Roman',
+                fontFamily: 'CarnevaleeFreakshow',
               ),
             ),
             SizedBox(height: 10),
@@ -98,7 +113,18 @@ class _PagamentoViewState extends State<PagamentoView> {
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.purple,
-                fontFamily: 'Verdana',
+                fontFamily: 'CarnevaleeFreakshow',
+              ),
+            ),
+            SizedBox(height: 10),
+            // Exibir o UID
+            Text(
+              'UID: $_uid',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                fontFamily: 'CarnevaleeFreakshow',
               ),
             ),
             SizedBox(height: 20), // Espaçamento entre o texto e a imagem

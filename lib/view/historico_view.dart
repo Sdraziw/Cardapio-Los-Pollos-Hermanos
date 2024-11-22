@@ -10,7 +10,7 @@ class HistoricoView extends StatefulWidget {
 }
 
 class HistoricoViewState extends State<HistoricoView> {
-  List<String> historico = [];
+  List<Map<String, dynamic>> historico = [];
   int _currentIndex = 1;
 
   void _onTabTapped(int index) {
@@ -37,7 +37,7 @@ class HistoricoViewState extends State<HistoricoView> {
 
   Future<void> carregarHistorico() async {
     try {
-      historico = await getIt<PedidoService>().obterHistorico();
+      historico = List<Map<String, dynamic>>.from(await PedidoService().obterHistorico());
       setState(() {});
     } catch (e) {
       Logger().e('Erro ao carregar histórico: $e');
@@ -48,85 +48,38 @@ class HistoricoViewState extends State<HistoricoView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Histórico de Pedidos'),
-            Image.network(
-              'lib/images/rv_2.png',
-              height: 90,
-            ),
-          ],
-        ),
+        title: Text('Histórico de Pedidos'),
         backgroundColor: Color(0xFFFFD600),
-        automaticallyImplyLeading: false,
       ),
       body: historico.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Você ainda não fez nenhum pedido.\n\nFaça um pedido para começar a ver seu histórico!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
-                ),
-              ),
-            )
-          : ListView.separated(
+          ? Center(child: Text('Nenhum pedido finalizado encontrado.'))
+          : ListView.builder(
               itemCount: historico.length,
-              separatorBuilder: (context, index) => Divider(
-                color: Colors.grey,
-                thickness: 1,
-              ),
               itemBuilder: (context, index) {
-                return Card(
-                  elevation: 2,
-                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Pedido ${index + 1}',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          historico[index],
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.black54,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Data e Hora retirada: ${DateTime.now().toLocal()}'
-                              .split(' ')[0], // Data atual para exemplo
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                Map<String, dynamic> pedido = historico[index];
+                return ListTile(
+                  title: Text('Pedido #${pedido['numero_pedido'].toString()}'),
+                  subtitle: Text('Status: ${pedido['status'].toString()}'),
+                  trailing: Text('Data: ${DateTime.parse(pedido['data_hora']).toLocal().toString()}'),
                 );
               },
             ),
       bottomNavigationBar: BottomNavigationBar(
-        fixedColor: Colors.black,
-        backgroundColor: Color(0xFFFFD600),
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long), label: 'Pedidos'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+            icon: Icon(Icons.menu),
+            label: 'Menu',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'Histórico',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
         ],
       ),
     );

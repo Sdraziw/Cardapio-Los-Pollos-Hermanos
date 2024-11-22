@@ -31,6 +31,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
     verificarPedidoExistente();
   }
 
+  // Verifica se já existe um pedido em andamento para o usuário logado e cria um novo pedido se não existir um pedido em andamento
   Future<void> verificarPedidoExistente() async {
     final user = auth.currentUser;
     if (user != null) {
@@ -38,19 +39,42 @@ class CarrinhoViewState extends State<CarrinhoView> {
         final pedidoRef = firestore.collection('pedidos').doc(user.uid);
         final pedidoDoc = await pedidoRef.get();
 
-        if (pedidoDoc.exists && pedidoDoc['status'] == 'novo pedido') {
-          setState(() {
-            // Atualiza a tela com o pedido existente
-          });
+        if (pedidoDoc.exists) {
+          String statusPedido = pedidoDoc['status'];
+          if (statusPedido == 'novo pedido' || statusPedido == 'aguardando pagamento') {
+            setState(() {
+              // Atualiza a tela com o pedido existente de status novo pedido ou aguardando pagamento
+              PedidoService().atualizarStatusPedido(statusPedido);
+            });
+          } else if (statusPedido == 'pagamento confirmado') {
+            // Mantém o pedido com status "pagamento confirmado" e cria um novo pedido
+            int novoNumeroPedido = await pedidoService.obterProximoNumeroPedido();
+            await firestore.collection('pedidos').add({
+              'uid': user.uid,
+              'numero_pedido': novoNumeroPedido,
+              'status': 'novo pedido',
+              'data': FieldValue.serverTimestamp(),
+            });
+            setState(() {
+              // Atualiza a tela com o novo pedido criado
+              PedidoService().atualizarStatusPedido('novo pedido');
+            });
+          } else {
+            // Mantém o pedido com status diferente de "novo pedido" ou "aguardando pagamento"
+            setState(() {
+              mensagemErro = 'Você não pode modificar um pedido com status "$statusPedido".';
+            });
+          }
         } else {
-          int novoNumeroPedido = await pedidoService.obterProximoNumeroPedido();
+          int novoNumeroPedido = await PedidoService().obterProximoNumeroPedido();
           await pedidoRef.set({
             'numero_pedido': novoNumeroPedido,
             'status': 'novo pedido',
             'data': FieldValue.serverTimestamp(),
           });
           setState(() {
-            // Atualiza a tela com o novo pedido
+            // Atualiza a tela com o novo pedido criado
+            PedidoService().atualizarStatusPedido('novo pedido');
           });
         }
       } catch (e) {
@@ -59,29 +83,12 @@ class CarrinhoViewState extends State<CarrinhoView> {
     }
   }
 
-  Future<int> obterProximoNumeroPedido() async {
-    final user = auth.currentUser;
-    if (user != null) {
-      try {
-        final pedidoRef = firestore.collection('pedidos').doc(user.uid);
-        final pedidoDoc = await pedidoRef.get();
-
-        if (pedidoDoc.exists) {
-          return pedidoDoc['numero_pedido'];
-        } else {
-          final configDoc =
-              await firestore.collection('config').doc('config').get();
-          int proximoNumeroPedido = configDoc['proximo_numero_pedido'];
-          await firestore.collection('config').doc('config').update({
-            'proximo_numero_pedido': proximoNumeroPedido + 1,
-          });
-          return proximoNumeroPedido;
-        }
-      } catch (e) {
-        print('Erro ao obter próximo número de pedido: $e');
-      }
+  Future<void> obterProximoNumeroPedido(double novoNumeroPedido) async {
+    try {
+      await pedidoService.obterProximoNumeroPedido();
+    } catch (e) {
+      debugPrint('Erro ao obter o proximo numero do pedido: $e');
     }
-    return 0;
   }
 
   Future<void> atualizarStatusPedido(String status) async {
@@ -124,7 +131,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
             "Sorvete Negresco é feito de leite condensado, leite, biscoitos Negresco, essência de baunilha, ovos, açúcar e creme de leite. Bem simples e delicioso! 🍦",
         resumo: 'Casquinha Recheada e Massa Baunilha',
         quantidade: 1,
-        status: 'retirar no balcão',
+        item_pacote: 'a retirar no balcão',
         cupom: true,
         categoria: 'Sobremesas',
       );
@@ -151,7 +158,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
         descricao: "Pão de hamburguer, Frango Parrudo Empanado, Molho Barbecue",
         resumo: 'Lanche parrudo | 200g 🍔',
         quantidade: 1,
-        status: 'retirar no balcão',
+        item_pacote: 'a retirar no balcão',
         cupom: true,
         categoria: 'Lanches',
       );
@@ -238,6 +245,25 @@ class CarrinhoViewState extends State<CarrinhoView> {
 
           List<Map<String, dynamic>> itensCarrinho = snapshot.data!;
 
+          // Verificação e ajuste da quantidade de itens aplicados como cupom
+          for (var item in itensCarrinho) {
+            if (item['cupom'] == true && item['quantidade'] > 1) {
+              item['quantidade'] = 1;
+            }
+          }
+
+          // Verificação de pedido com status de novo pedido e cupom igual a true
+          bool temCupom = itensCarrinho.any((item) => item['cupom'] == true);
+          bool temNovoPedido = itensCarrinho.any((item) => item['status'] == 'novo pedido');
+
+          if (temCupom && temNovoPedido) {
+            for (var item in itensCarrinho) {
+              if (item['cupom'] == true) {
+                item['quantidade'] = 1;
+              }
+            }
+          }
+
           if (itensCarrinho.isEmpty) {
             SchedulerBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -299,6 +325,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                     imagem: item['imagem'] ?? '',
                                     resumo: item['resumo'] ?? '',
                                     categoria: item['categoria'] ?? '',
+                                    item_pacote: item['item_pacote'] ?? '',
                                   ),
                                   -1,
                                 );
@@ -319,6 +346,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                     imagem: item['imagem'] ?? '',
                                     resumo: item['resumo'] ?? '',
                                     categoria: item['categoria'] ?? '',
+                                    item_pacote: item['item_pacote'] ?? '',
                                   ),
                                 );
                               }
@@ -336,6 +364,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                   imagem: item['imagem'] ?? '',
                                   resumo: item['resumo'] ?? '',
                                   categoria: item['categoria'] ?? '',
+                                  item_pacote: item['item_pacote'] ?? '',
                                 ),
                                 1,
                               );
@@ -361,6 +390,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                   imagem: item['imagem'] ?? '',
                                   resumo: item['resumo'] ?? '',
                                   categoria: item['categoria'] ?? '',
+                                  item_pacote: item['item_pacote'] ?? '',
                                 ),
                               );
                             },

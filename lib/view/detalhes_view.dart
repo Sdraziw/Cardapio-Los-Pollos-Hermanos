@@ -199,7 +199,7 @@ class _DetalhesViewState extends State<DetalhesView> {
 
                   // Atualiza a lista de itens do pedido no carrinho passando como parâmetro o nome do prato
                   await pedidoService.buscarItensPedido();
-                  await pedidoService.atualizarItensPedido();
+                  //await pedidoService.atualizarItensPedido();
                   // Atualiza o status do pedido
                   await pedidoService.atualizarStatusPedido('aguardando pagamento');
                   // Atualiza o número do pedido

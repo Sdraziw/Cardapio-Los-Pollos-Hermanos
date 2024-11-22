@@ -5,12 +5,14 @@ class Categoria {
   String descricao;
   String imagem;
   int ordem;
+  bool ativo;
 
   Categoria({
     required this.nome,
     required this.descricao,
     required this.imagem,
     required this.ordem,
+    required this.ativo,
   });
 
   factory Categoria.fromFirestore(DocumentSnapshot doc) {
@@ -20,6 +22,7 @@ class Categoria {
       descricao: data['descricao'],
       imagem: data['imagem'],
       ordem: data['ordem'],
+      ativo: data['ativo'],
     );
   }
 }
