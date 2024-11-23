@@ -14,8 +14,9 @@ class PedidoService {
   final List<Prato> _pedidos = [];
   List<Prato> get pedidos => _pedidos;
 
-  static void setup() {
+  void setup() {
     getIt.registerLazySingleton<PedidoService>(() => PedidoService());
+  return;
   }
 
   Future<String> gerarNumeroPedido() async {
@@ -302,8 +303,7 @@ class PedidoService {
     }
   }
 
-  // Aplicar código promocional e adicionar item ao pedido se o código for válido
-  void aplicarCodigoPromocional(BuildContext context, String codigo) {
+  Future<void> aplicarCodigoPromocional(BuildContext context, String codigo) async {
     bool lanche2024 = true;
     bool sobremesa2024 = true;
     Prato? pratoGratuito;
@@ -322,15 +322,27 @@ class PedidoService {
         cupom: true,
         categoria: 'Sobremesas',
       );
-      // Adicione o prato gratuito ao pedido ou faça outra ação necessária
-      _pedidos.add(pratoGratuito);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.green.withOpacity(0.5),
-          content: Text(
-              '🌵🌕👻🍦 SOBREMESA2024🦅🌕🌵 Aplicado com sucesso.'), //futuramente colocar o expirado
-        ),
-      );
+      // Verifica se o item já foi adicionado por cupom
+      bool itemAdicionadoPorCupom = await verificarItemAdicionadoPorCupom(pratoGratuito.nome);
+      if (!itemAdicionadoPorCupom) {
+        // Adicione o prato gratuito ao pedido no Firebase
+        await adicionarAoPedido(pratoGratuito, 1);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.green.withOpacity(0.5),
+            content: Text(
+                '🌵🌕👻🍦 #${codigo}#🌕🌵🦅 Aplicado com sucesso.'), //futuramente colocar o expirado
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.withOpacity(0.5),
+            content: Text(
+                '😕 Código promocional já foi aplicado anteriormente.'), //futuramente colocar o expirado
+          ),
+        );
+      }
     } else if ((codigo == 'LANCHE2024') && lanche2024 == true) {
       lanche2024 = false;
       pratoGratuito = Prato(
@@ -344,23 +356,47 @@ class PedidoService {
         cupom: true,
         categoria: 'Lanches',
       );
-      // Adicione o prato gratuito ao pedido ou faça outra ação necessária
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.green.withOpacity(0.5),
-          content: Text(
-              '🌵🌞🤤🍔 LANCHE2024🌵🌞 Aplicado com sucesso.'), //futuramente colocar o expirado
-        ),
-      );
+      // Verifica se o item já foi adicionado por cupom
+      bool itemAdicionadoPorCupom = await verificarItemAdicionadoPorCupom(pratoGratuito.nome);
+      if (!itemAdicionadoPorCupom) {
+        // Adicione o prato gratuito ao pedido no Firebase
+        await adicionarAoPedido(pratoGratuito, 1);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.green.withOpacity(0.5),
+            content: Text(
+                '🌵🌞🤤🍔 #${codigo}#🌵🌞 Aplicado com sucesso.'), //futuramente colocar o expirado
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.withOpacity(0.5),
+            content: Text(
+                '\n😜 O código promocional #${codigo}# já foi utilizado anteriormente. 😜'), //futuramente colocar o expirado
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.red.withOpacity(0.5),
           content: Text(
-              '😕 Código promocional inválido ou já aplicado.'), //futuramente colocar o expirado
+              '😕 Código promocional #${codigo}# inválido ou expirado.'), //futuramente colocar o expirado
         ),
       );
     }
+  }
+
+  Future<bool> verificarItemAdicionadoPorCupom(String nome) async {
+    final user = auth.currentUser;
+    if (user != null) {
+      final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+      final itensRef = pedidoRef.collection('itens');
+      QuerySnapshot query = await itensRef.where('nome', isEqualTo: nome).where('cupom', isEqualTo: true).get();
+      return query.docs.isNotEmpty;
+    }
+    return false;
   }
 
   Future<List<String>> obterHistorico() async {
@@ -372,5 +408,5 @@ class PedidoService {
 final getIt = GetIt.instance;
 
 void setupservice() {
-  PedidoService.setup();
+  PedidoService().setup();
 }

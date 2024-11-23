@@ -86,7 +86,7 @@ class MainApp extends StatelessWidget {
         'historico': (context) => HistoricoView(),
         'splash': (context) => SplashView(),
       },
-      title: 'RGB Circle',
+      title: 'Los Pollos Hermanos',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
