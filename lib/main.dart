@@ -26,6 +26,7 @@ import 'package:los_pollos_hermanos/widgets/aurora_animation.dart'; // Importa a
 import 'dart:ui';
 import 'dart:typed_data';
 import 'package:get_it/get_it.dart';
+import 'package:los_pollos_hermanos/view/rgb_circle.dart';
 
 Future<void> main() async {
   // Configure the ChannelBuffers to handle messages
@@ -85,6 +86,16 @@ class MainApp extends StatelessWidget {
         'historico': (context) => HistoricoView(),
         'splash': (context) => SplashView(),
       },
+      title: 'RGB Circle',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('RGB Circle'),
+        ),
+        body: RGBCircle(),
+      ),
     );
   }
 }

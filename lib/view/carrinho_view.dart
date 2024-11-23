@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/scheduler.dart';
 import '../services/pedido_service.dart';
 import '../model/itens_model.dart';
-import '../view/promo_view.dart'; // Add this line to import PromoView
 
 class CarrinhoView extends StatefulWidget {
   const CarrinhoView({super.key});
@@ -29,31 +28,27 @@ class CarrinhoViewState extends State<CarrinhoView> {
   @override
   void initState() {
     super.initState();
-    pedidoService.verificarPedidoExistente();
+    pedidoService.verificarPedidoExistente(context);
   }
 
+  // Chama a função obterProximoNumeroPedido do PedidoService
   Future<void> obterProximoNumeroPedido(double novoNumeroPedido) async {
     try {
-      await pedidoService.obterProximoNumeroPedido();
+      await pedidoService.obterProximoNumeroPedido(context);
     } catch (e) {
       debugPrint('Erro ao obter o proximo numero do pedido: $e');
     }
   }
 
-  Future<void> atualizarStatus(String status) async {
-    final user = auth.currentUser;
-    if (user != null) {
-      try {
-        final pedidoRef = firestore.collection('pedidos').doc(user.uid);
-        await pedidoRef.update({'status': status});
-        print('Status atualizado com sucesso para: $status');
-      } catch (e) {
-        print('Erro ao atualizar status: $e');
-      }
-    } else {
-      print('Usuário não autenticado.');
+  // Chama a função atualizarStatusPedido do PedidoService
+  Future<void> atualizarStatusPedido(String status) async {
+    try {
+      await pedidoService.atualizarStatusPedido(context, status);
+    } catch (e) {
+      debugPrint('Erro ao atualizar status do pedido: $e');
     }
   }
+
 
   Future<void> adicionarAoPedido(Prato prato, int quantidade) async {
     try {
@@ -109,8 +104,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
 
   Future<void> aplicarCodigoPromocional(String codigo) async {
     try {
-      final promoView = PromoView();
-      promoView.aplicarCodigoPromocional(context, codigo);
+      pedidoService.aplicarCodigoPromocional(context, codigo);
     } catch (e) {
       print('Erro ao aplicar código promocional: $e');
     }
@@ -140,7 +134,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                 SnackBar(
                   backgroundColor: Colors.black.withOpacity(0.5),
                   content: Text(
-                      'Se o seu pedido foi pago, ele está sendo separado e será notificado em breve.\nCaso já tenha realizado o pagamento e ainda não tenha sido notificado, aguarde, pois a notificação será enviada em breve.\nPara mais detalhes, verifique o status do pedido na tela de pedidos.'),
+                      'Se o seu pedido já foi pago ✅, estamos cuidando dele 📦 e você será notificado em breve ⏳. Confira o status na tela de pedidos'),
                 ),
               );
             });
@@ -165,18 +159,6 @@ class CarrinhoViewState extends State<CarrinhoView> {
           for (var item in itensCarrinho) {
             if (item['cupom'] == true && item['quantidade'] > 1) {
               item['quantidade'] = 1;
-            }
-          }
-
-          // Verificação de pedido com status de novo pedido e cupom igual a true
-          bool temCupom = itensCarrinho.any((item) => item['cupom'] == true);
-          bool temNovoPedido = itensCarrinho.any((item) => item['status'] == 'novo pedido');
-
-          if (temCupom && temNovoPedido) {
-            for (var item in itensCarrinho) {
-              if (item['cupom'] == true) {
-                item['quantidade'] = 1;
-              }
             }
           }
 
@@ -391,7 +373,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                     SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () async {
-                        await atualizarStatus('aguardando pagamento');
+                        await atualizarStatusPedido('aguardando pagamento');
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             backgroundColor: Colors.black.withOpacity(0.5),

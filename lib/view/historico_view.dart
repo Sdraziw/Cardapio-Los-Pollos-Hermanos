@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/pedido_service.dart';
 import 'package:logger/logger.dart';
+import 'package:los_pollos_hermanos/view/rgb_circle.dart';
+
 
 class HistoricoView extends StatefulWidget {
   const HistoricoView({super.key});
@@ -19,13 +21,16 @@ class HistoricoViewState extends State<HistoricoView> {
     });
 
     if (index == 0) {
-      // Lógica para a tela de Menu
       Navigator.pushReplacementNamed(context, 'menu');
     } else if (index == 1) {
-      // Navegar para a tela de categorias
       Navigator.pushReplacementNamed(context, 'historico');
     } else if (index == 2) {
       Navigator.pushReplacementNamed(context, 'perfil');
+    } else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const RGBCircleScreen()),
+      );
     }
   }
 
@@ -37,7 +42,7 @@ class HistoricoViewState extends State<HistoricoView> {
 
   Future<void> carregarHistorico() async {
     try {
-      historico = List<Map<String, dynamic>>.from(await PedidoService().obterHistorico());
+      historico = await getIt<PedidoService>().obterHistoricoFiltrado();
       setState(() {});
     } catch (e) {
       Logger().e('Erro ao carregar histórico: $e');
@@ -80,8 +85,27 @@ class HistoricoViewState extends State<HistoricoView> {
             icon: Icon(Icons.person),
             label: 'Perfil',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.circle),
+            label: 'RGB Circle',
+          ),
         ],
       ),
+    );
+  }
+}
+
+class RGBCircleScreen extends StatelessWidget {
+  const RGBCircleScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('RGB Circle'),
+        backgroundColor: Color(0xFFFFD600),
+      ),
+      body: RGBCircle(),
     );
   }
 }

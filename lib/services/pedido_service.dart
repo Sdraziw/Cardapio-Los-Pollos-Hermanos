@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -41,7 +42,17 @@ class PedidoService {
       bool itemAdicionado = await verificarItemAdicionado(prato.nome);
 
       if (!itemAdicionado) {
-        await itensRef.add({'nome': prato.nome, 'quantidade': quantidade});
+        await itensRef.add({
+          'nome': prato.nome,
+          'descricao': prato.descricao,
+          'preco': prato.preco,
+          'imagem': prato.imagem,
+          'resumo': prato.resumo,
+          'quantidade': quantidade,
+          'item_pacote': prato.item_pacote,
+          'cupom': prato.cupom,
+          'categoria': prato.categoria,
+        });
       } else {
         QuerySnapshot query = await itensRef.where('nome', isEqualTo: prato.nome).get();
         DocumentSnapshot doc = query.docs.first;
@@ -97,13 +108,18 @@ class PedidoService {
     return null;
   }
 
-  Future<void> atualizarStatus(String status) async {
+  Future<void> atualizarStatusPedido(BuildContext context, String status) async {
     final user = auth.currentUser;
     if (user != null) {
       try {
         final pedidoRef = firestore.collection('pedidos').doc(user.uid);
         await pedidoRef.update({'status': status});
-        print('Status atualizado com sucesso para: $status');
+        ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.black.withOpacity(0.5),
+                  content: Text('Status atualizado com sucesso para: $status'),
+                ),
+              );
       } catch (e) {
         print('Erro ao atualizar status: $e');
       }
@@ -167,21 +183,33 @@ class PedidoService {
     }
   }
 
-  Future<int> obterProximoNumeroPedido() async {
+  Future<int> obterProximoNumeroPedido(BuildContext context) async {
     final configRef = firestore.collection('config').doc('numeroPedido');
     final configDoc = await configRef.get();
 
     if (configDoc.exists) {
       int numeroPedido = configDoc['numero'] ?? 0;
       await configRef.update({'numero': numeroPedido + 1});
+       ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.black.withOpacity(0.5),
+                  content: Text('Novo pedido gerado de número: ${numeroPedido + 1}.'),
+                ),
+              );
       return numeroPedido + 1;
     } else {
       await configRef.set({'numero': 1});
+      ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.black.withOpacity(0.5),
+                  content: Text('Primeiro pedido registrado em Firebase.'),
+                ),
+              );
       return 1;
     }
   }
 
-  Future<void> atualizarItensPedido(String nome, int quantidade) async {
+  Future<void> atualizarItensPedido(String nome, int quantidade, double preco,) async {
     final user = auth.currentUser;
     if (user != null) {
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
@@ -190,6 +218,9 @@ class PedidoService {
       if (query.docs.isNotEmpty) {
         final itemDoc = query.docs.first;
         await itemDoc.reference.update({'quantidade': quantidade});
+      } else { // Adiciona o item ao pedido se não existir
+        await itensRef.add({'nome': nome, 'quantidade': quantidade, 'preco': preco});
+
       }
     }
   }
@@ -202,13 +233,25 @@ class PedidoService {
           .where('uid', isEqualTo: user.uid)
           .where('status', isEqualTo: 'pedido finalizado')
           .get();
-      return querySnapshot.docs.map((doc) => doc.data()).toList();
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'nome': data['nome'] ?? '',
+          'preco': (data['preco'] as num?)?.toDouble() ?? 0.0,
+          'imagem': data['imagem'] ?? '',
+          'resumo': data['resumo'] ?? '',
+          'quantidade': data['quantidade'] ?? 0,
+          'item_pacote': data['item_pacote'] ?? '',
+          'cupom': data['cupom'] ?? false,
+          'categoria': data['categoria'] ?? '',
+        };
+      }).toList();
     }
     return [];
   }
 
   // Verifica se já existe um pedido em andamento para o usuário logado e cria um novo pedido se não existir um pedido em andamento
-  Future<void> verificarPedidoExistente() async {
+  Future<void> verificarPedidoExistente(BuildContext context) async {
     final user = auth.currentUser;
     if (user != null) {
       try {
@@ -220,11 +263,11 @@ class PedidoService {
           if (status == 'novo pedido' || status == 'aguardando pagamento' || status == 'pedido aberto') {
             
               // Atualiza a tela com o pedido existente de status novo pedido ou aguardando pagamento
-              atualizarStatus(status);
+              await atualizarStatusPedido(context, status);
             
           } else if (status == 'pagamento confirmado') {
             // Mantém o pedido com status "pagamento confirmado" e cria um novo pedido
-            int novoNumeroPedido = await obterProximoNumeroPedido();
+            int novoNumeroPedido = await obterProximoNumeroPedido(context);
             await firestore.collection('pedidos').add({
               'uid': user.uid,
               'numero_pedido': novoNumeroPedido,
@@ -233,7 +276,7 @@ class PedidoService {
             });
             
               // Atualiza a tela com o novo pedido criado
-              atualizarStatus('novo pedido');
+              await atualizarStatusPedido(context, 'novo pedido');
             
           } else {
             // Mantém o pedido com status diferente de "novo pedido" ou "aguardando pagamento"
@@ -242,7 +285,7 @@ class PedidoService {
             
           }
         } else {
-          int novoNumeroPedido = await obterProximoNumeroPedido();
+          int novoNumeroPedido = await obterProximoNumeroPedido(context);
           await pedidoRef.set({
             'numero_pedido': novoNumeroPedido,
             'status': 'pedido aberto',
@@ -250,12 +293,73 @@ class PedidoService {
           });
           
             // Atualiza a tela com o novo pedido criado
-            atualizarStatus('pedido aberto');
+            await atualizarStatusPedido(context, 'pedido aberto');
           
         }
       } catch (e) {
         print('Erro ao verificar pedido existente: $e');
       }
+    }
+  }
+
+  // Aplicar código promocional e adicionar item ao pedido se o código for válido
+  void aplicarCodigoPromocional(BuildContext context, String codigo) {
+    bool lanche2024 = true;
+    bool sobremesa2024 = true;
+    Prato? pratoGratuito;
+
+    if ((codigo == 'SOBREMESA2024') && sobremesa2024 == true) {
+      sobremesa2024 = false;
+      pratoGratuito = Prato(
+        nome: "🎃👻SOBREMESA2024 🍦- Sorvete Negresco",
+        preco: 0.0,
+        imagem: "lib/images/ice-cream.webp",
+        descricao:
+            "Sorvete Negresco é feito de leite condensado, leite, biscoitos Negresco, essência de baunilha, ovos, açúcar e creme de leite. Bem simples e delicioso! 🍦",
+        resumo: 'Casquinha Recheada e Massa Baunilha',
+        quantidade: 1,
+        item_pacote: 'a retirar no balcão',
+        cupom: true,
+        categoria: 'Sobremesas',
+      );
+      // Adicione o prato gratuito ao pedido ou faça outra ação necessária
+      _pedidos.add(pratoGratuito);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green.withOpacity(0.5),
+          content: Text(
+              '🌵🌕👻🍦 SOBREMESA2024🦅🌕🌵 Aplicado com sucesso.'), //futuramente colocar o expirado
+        ),
+      );
+    } else if ((codigo == 'LANCHE2024') && lanche2024 == true) {
+      lanche2024 = false;
+      pratoGratuito = Prato(
+        nome: "🎃👻LANCHE2024 🍔- Cê é LOCO cachoeira",
+        preco: 0.0,
+        imagem: 'lib/images/promo_image.png',
+        descricao: "Pão de hamburguer, Frango Parrudo Empanado, Molho Barbecue",
+        resumo: 'Lanche parrudo | 200g 🍔',
+        quantidade: 1,
+        item_pacote: 'a retirar no balcão',
+        cupom: true,
+        categoria: 'Lanches',
+      );
+      // Adicione o prato gratuito ao pedido ou faça outra ação necessária
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green.withOpacity(0.5),
+          content: Text(
+              '🌵🌞🤤🍔 LANCHE2024🌵🌞 Aplicado com sucesso.'), //futuramente colocar o expirado
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red.withOpacity(0.5),
+          content: Text(
+              '😕 Código promocional inválido ou já aplicado.'), //futuramente colocar o expirado
+        ),
+      );
     }
   }
 
