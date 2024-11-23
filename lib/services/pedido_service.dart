@@ -14,9 +14,8 @@ class PedidoService {
   final List<Prato> _pedidos = [];
   List<Prato> get pedidos => _pedidos;
 
-  void setup() {
+  static void setup() {
     getIt.registerLazySingleton<PedidoService>(() => PedidoService());
-  return;
   }
 
   Future<String> gerarNumeroPedido() async {
@@ -25,7 +24,7 @@ class PedidoService {
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
       final pedidoDoc = await pedidoRef.get();
       if (pedidoDoc.exists) {
-        return pedidoDoc['numero_pedido'].toString();
+        return pedidoDoc['numeroPedido'].toString();
       }
     }
     return '0';
@@ -50,7 +49,7 @@ class PedidoService {
           'imagem': prato.imagem,
           'resumo': prato.resumo,
           'quantidade': quantidade,
-          'item_pacote': prato.item_pacote,
+          'itemPacote': prato.itemPacote,
           'cupom': prato.cupom,
           'categoria': prato.categoria,
         });
@@ -87,7 +86,7 @@ class PedidoService {
             'imagem': data['imagem'] ?? '',
             'resumo': data['resumo'] ?? '',
             'quantidade': data['quantidade'] ?? 0,
-            'item_pacote': data['item_pacote'] ?? '',
+            'itemPacote': data['itemPacote'] ?? '',
             'cupom': data['cupom'] ?? false,
             'categoria': data['categoria'] ?? '',
           };
@@ -103,26 +102,26 @@ class PedidoService {
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
       final pedidoDoc = await pedidoRef.get();
       if (pedidoDoc.exists) {
-        return pedidoDoc['numero_pedido'];
+        return pedidoDoc['numeroPedido'];
       }
     }
     return null;
   }
 
-  Future<void> atualizarStatusPedido(BuildContext context, String status) async {
+  Future<void> atualizarStatusPedido(BuildContext context, String statusPedido) async {
     final user = auth.currentUser;
     if (user != null) {
       try {
         final pedidoRef = firestore.collection('pedidos').doc(user.uid);
-        await pedidoRef.update({'status': status});
+        await pedidoRef.update({'statusPedido': statusPedido});
         ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   backgroundColor: Colors.black.withOpacity(0.5),
-                  content: Text('Status atualizado com sucesso para: $status'),
+                  content: Text('Status atualizado com sucesso para: $statusPedido'),
                 ),
               );
       } catch (e) {
-        print('Erro ao atualizar status: $e');
+        print('Erro ao atualizar statusPedido: $e');
       }
     } else {
       print('Usuário não autenticado.');
@@ -160,14 +159,25 @@ class PedidoService {
     final user = auth.currentUser;
     if (user != null) {
       final historicoRef = firestore.collection('pedidos');
-      await historicoRef.add({
-        'uid': user.uid,
-        'numero_pedido': numeroPedido,
-        'status': 'pedido finalizado',
-        'itens': _pedidos.map((prato) => prato.nome).toList(),
-        'data_hora': FieldValue.serverTimestamp(),
-      });
-      limparPedido();
+      final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+      final pedidoDoc = await pedidoRef.get();
+      if (pedidoDoc.exists) {
+        final pedidoData = pedidoDoc.data();
+        final itensSnapshot = await pedidoRef.collection('itens').get();
+        final itensData = itensSnapshot.docs.map((doc) => doc.data()).toList();
+
+        await historicoRef.add({
+          'uid': user.uid,
+          'numeroPedido': numeroPedido,
+          'statusPedido': 'pedido finalizado',
+          'itens': itensData,
+          'data_hora': FieldValue.serverTimestamp(),
+          ...?pedidoData,
+        });
+
+        // Remove o pedido atual
+        await pedidoRef.delete();
+      }
     }
   }
 
@@ -176,11 +186,14 @@ class PedidoService {
     if (user != null) {
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
       await pedidoRef.update({
-        'status': 'pagamento confirmado',
+        'statusPedido': 'pagamento confirmado',
         'forma_pagamento': formaPagamento,
-        'numero_pedido': numeroPedido,
+        'numeroPedido': numeroPedido,
         'data_pagamento': FieldValue.serverTimestamp(),
       });
+
+      // Move o pedido para a coleção de histórico
+      await registrarHistorico(numeroPedido);
     }
   }
 
@@ -203,14 +216,14 @@ class PedidoService {
       ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   backgroundColor: Colors.black.withOpacity(0.5),
-                  content: Text('Primeiro pedido registrado em Firebase.'),
+                  content: Text('💾Primeiro pedido registrado em Firebase🔥🛢️.'),
                 ),
               );
       return 1;
     }
   }
 
-  Future<void> atualizarItensPedido(String nome, int quantidade, double preco,) async {
+  Future<void> atualizarItensPedido(String nome, int quantidade, Map<String, dynamic> data) async {
     final user = auth.currentUser;
     if (user != null) {
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
@@ -218,10 +231,29 @@ class PedidoService {
       QuerySnapshot query = await itensRef.where('nome', isEqualTo: nome).get();
       if (query.docs.isNotEmpty) {
         final itemDoc = query.docs.first;
-        await itemDoc.reference.update({'quantidade': quantidade});
-      } else { // Adiciona o item ao pedido se não existir
-        await itensRef.add({'nome': nome, 'quantidade': quantidade, 'preco': preco});
-
+        await itemDoc.reference.update({
+          'quantidade': quantidade,
+          'nome': data['nome'] ?? '',
+          'descricao': data['descricao'] ?? '',
+          'preco': (data['preco'] as num?)?.toDouble() ?? 0.0,
+          'imagem': data['imagem'] ?? '',
+          'resumo': data['resumo'] ?? '',
+          'itemPacote': data['itemPacote'] ?? '',
+          'cupom': data['cupom'] ?? false,
+          'categoria': data['categoria'] ?? '',
+        });
+      } else {
+        await itensRef.add({
+          'nome': data['nome'] ?? '',
+          'descricao': data['descricao'] ?? '',
+          'preco': (data['preco'] as num?)?.toDouble() ?? 0.0,
+          'imagem': data['imagem'] ?? '',
+          'resumo': data['resumo'] ?? '',
+          'quantidade': quantidade,
+          'itemPacote': data['itemPacote'] ?? '',
+          'cupom': data['cupom'] ?? false,
+          'categoria': data['categoria'] ?? '',
+        });
       }
     }
   }
@@ -232,7 +264,7 @@ class PedidoService {
       final historicoRef = firestore.collection('pedidos');
       final querySnapshot = await historicoRef
           .where('uid', isEqualTo: user.uid)
-          .where('status', isEqualTo: 'pedido finalizado')
+          .where('statusPedido', isEqualTo: 'pedido finalizado')
           .get();
       return querySnapshot.docs.map((doc) {
         final data = doc.data();
@@ -242,7 +274,7 @@ class PedidoService {
           'imagem': data['imagem'] ?? '',
           'resumo': data['resumo'] ?? '',
           'quantidade': data['quantidade'] ?? 0,
-          'item_pacote': data['item_pacote'] ?? '',
+          'itemPacote': data['itemPacote'] ?? '',
           'cupom': data['cupom'] ?? false,
           'categoria': data['categoria'] ?? '',
         };
@@ -260,19 +292,19 @@ class PedidoService {
         final pedidoDoc = await pedidoRef.get();
 
         if (pedidoDoc.exists) {
-          String status = pedidoDoc['status'];
-          if (status == 'novo pedido' || status == 'aguardando pagamento' || status == 'pedido aberto') {
+          String statusPedido = pedidoDoc['statusPedido'];
+          if (statusPedido == 'novo pedido' || statusPedido == 'aguardando pagamento' || statusPedido == 'pedido aberto') {
             
-              // Atualiza a tela com o pedido existente de status novo pedido ou aguardando pagamento
-              await atualizarStatusPedido(context, status);
+              // Atualiza a tela com o pedido existente de statusPedido novo pedido ou aguardando pagamento
+              await atualizarStatusPedido(context, statusPedido);
             
-          } else if (status == 'pagamento confirmado') {
-            // Mantém o pedido com status "pagamento confirmado" e cria um novo pedido
+          } else if (statusPedido == 'pagamento confirmado') {
+            // Mantém o pedido com statusPedido "pagamento confirmado" e cria um novo pedido
             int novoNumeroPedido = await obterProximoNumeroPedido(context);
             await firestore.collection('pedidos').add({
               'uid': user.uid,
-              'numero_pedido': novoNumeroPedido,
-              'status': 'novo pedido',
+              'numeroPedido': novoNumeroPedido,
+              'statusPedido': 'novo pedido',
               'data': FieldValue.serverTimestamp(),
             });
             
@@ -280,16 +312,16 @@ class PedidoService {
               await atualizarStatusPedido(context, 'novo pedido');
             
           } else {
-            // Mantém o pedido com status diferente de "novo pedido" ou "aguardando pagamento"
+            // Mantém o pedido com statusPedido diferente de "novo pedido" ou "aguardando pagamento"
             
-              mensagemErro = 'Você não pode modificar um pedido com status "$status".';
+              mensagemErro = 'Você não pode modificar um pedido com statusPedido "$statusPedido".';
             
           }
         } else {
           int novoNumeroPedido = await obterProximoNumeroPedido(context);
           await pedidoRef.set({
-            'numero_pedido': novoNumeroPedido,
-            'status': 'pedido aberto',
+            'numeroPedido': novoNumeroPedido,
+            'statusPedido': 'pedido aberto',
             'data': FieldValue.serverTimestamp(),
           });
           
@@ -318,7 +350,7 @@ class PedidoService {
             "Sorvete Negresco é feito de leite condensado, leite, biscoitos Negresco, essência de baunilha, ovos, açúcar e creme de leite. Bem simples e delicioso! 🍦",
         resumo: 'Casquinha Recheada e Massa Baunilha',
         quantidade: 1,
-        item_pacote: 'a retirar no balcão',
+        itemPacote: 'a retirar no balcão',
         cupom: true,
         categoria: 'Sobremesas',
       );
@@ -352,7 +384,7 @@ class PedidoService {
         descricao: "Pão de hamburguer, Frango Parrudo Empanado, Molho Barbecue",
         resumo: 'Lanche parrudo | 200g 🍔',
         quantidade: 1,
-        item_pacote: 'a retirar no balcão',
+        itemPacote: 'a retirar no balcão',
         cupom: true,
         categoria: 'Lanches',
       );
@@ -408,5 +440,5 @@ class PedidoService {
 final getIt = GetIt.instance;
 
 void setupservice() {
-  PedidoService().setup();
+  PedidoService.setup();
 }

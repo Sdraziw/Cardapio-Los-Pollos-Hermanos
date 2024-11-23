@@ -201,7 +201,7 @@ class _DetalhesViewState extends State<DetalhesView> {
                   await pedidoService.buscarItensPedido();
                   // Atualiza a quantidade de itens no pedido
                   //await pedidoService.atualizarItensPedido();// utilizar com argumentos
-                  // Atualiza o status do pedido
+                  // Atualiza o statusPedido do pedido
                   await pedidoService.atualizarStatusPedido(context, 'inserido no carrinho');
                   // Atualiza o número do pedido
                   await pedidoService.buscarNumeroPedido();

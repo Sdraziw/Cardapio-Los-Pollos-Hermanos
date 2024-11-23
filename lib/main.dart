@@ -92,7 +92,7 @@ class MainApp extends StatelessWidget {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: Text('RGB Circle'),
+          title: Text('Los Pollos Hermanos'),
         ),
         body: RGBCircle(),
       ),

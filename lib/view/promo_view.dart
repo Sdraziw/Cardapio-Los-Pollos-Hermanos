@@ -55,7 +55,7 @@ class PromoView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.white,
+                color: Color.fromARGB(255, 123, 58, 226),
               ),
             ),
             const SizedBox(height: 15),

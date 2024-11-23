@@ -22,30 +22,79 @@ class CarrinhoViewState extends State<CarrinhoView> {
   String mensagemErro = '';
   String codigoPromocional = '';
   String mensagemCodigo = '';
+
+  // Cupons de desconto ativos
   bool lanche2024 = true;
   bool sobremesa2024 = true;
 
   @override
   void initState() {
     super.initState();
-    pedidoService.verificarPedidoExistente(context);
+    verificarPedidoExistente();
   }
 
-  // Chama a função obterProximoNumeroPedido do PedidoService
-  Future<void> obterProximoNumeroPedido(double novoNumeroPedido) async {
-    try {
-      await pedidoService.obterProximoNumeroPedido(context);
-    } catch (e) {
-      debugPrint('Erro ao obter o proximo numero do pedido: $e');
+  Future<void> verificarPedidoExistente() async {
+    final user = auth.currentUser;
+    if (user != null) {
+      try {
+        final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+        final pedidoDoc = await pedidoRef.get();
+
+        if (pedidoDoc.exists) {
+          String statusPedido = pedidoDoc['statusPedido'];
+          if (statusPedido == 'novo pedido' || statusPedido == 'aguardando pagamento') {
+            setState(() {
+              PedidoService().atualizarStatusPedido(context, statusPedido);
+            });
+          } else if (statusPedido == 'pagamento confirmado') {
+            await registrarHistorico(user.uid, pedidoDoc);
+            setState(() {
+              mensagemErro = 'Seu pedido foi finalizado e movido para o histórico.';
+            });
+          } else {
+            setState(() {
+              mensagemErro = 'Você não pode modificar um pedido com statusPedido "$statusPedido".';
+            });
+          }
+        } else {
+          int novoNumeroPedido = await pedidoService.obterProximoNumeroPedido(context);
+          await pedidoRef.set({
+            'numeroPedido': novoNumeroPedido,
+            'statusPedido': 'novo pedido',
+            'data': FieldValue.serverTimestamp(),
+          });
+          setState(() {
+            PedidoService().atualizarStatusPedido(context, 'novo pedido');
+          });
+        }
+      } catch (e) {
+        print('Erro ao verificar pedido existente: $e');
+      }
     }
   }
 
-  // Chama a função atualizarStatusPedido do PedidoService
-  Future<void> atualizarStatusPedido(String status) async {
+  Future<void> registrarHistorico(String uid, DocumentSnapshot pedidoDoc) async {
+    final historicoRef = firestore.collection('pedidos').doc(uid).collection('historico_pedidos');
+    final itensSnapshot = await pedidoDoc.reference.collection('itens').get();
+    final itensData = itensSnapshot.docs.map((doc) => doc.data()).toList();
+
+    await historicoRef.add({
+      'uid': uid,
+      'numeroPedido': pedidoDoc['numeroPedido'],
+      'statusPedido': 'pedido finalizado',
+      'itens': itensData,
+      'data_hora': FieldValue.serverTimestamp(),
+      if (pedidoDoc.data() != null) ...pedidoDoc.data() as Map<String, dynamic>,
+    });
+
+    await pedidoDoc.reference.delete();
+  }
+
+  Future<void> atualizarStatusPedido(String statusPedido) async {
     try {
-      await pedidoService.atualizarStatusPedido(context, status);
+      await pedidoService.atualizarStatusPedido(context, statusPedido);
     } catch (e) {
-      debugPrint('Erro ao atualizar status do pedido: $e');
+      debugPrint('Erro ao atualizar statusPedido do pedido: $e');
     }
   }
 
@@ -155,6 +204,8 @@ class CarrinhoViewState extends State<CarrinhoView> {
             );
           }
 
+          itensCarrinho = snapshot.data!;
+
           // Verificação e ajuste da quantidade de itens aplicados como cupom
           for (var item in itensCarrinho) {
             if (item['cupom'] == true && item['quantidade'] > 1) {
@@ -173,7 +224,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                 child: ListView.builder(
                   itemCount: itensCarrinho.length,
                   itemBuilder: (context, index) {
-                    var item = itensCarrinho[index];
+                    var item = itensCarrinho![index];
                     return ListTile(
                       leading: item['imagem'] != null
                           ? Image.network(item['imagem'])
@@ -202,7 +253,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                     resumo: item['resumo'] ?? '',
                                     quantidade:
                                         item['quantidade']?.toInt() ?? 0,
-                                    item_pacote: item['item_pacote'] ?? '',
+                                    itemPacote: item['itemPacote'] ?? '',
                                     cupom: item['cupom'] ?? false,
                                     categoria: item['categoria'] ?? '',
                                   ),
@@ -227,7 +278,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                     resumo: item['resumo'] ?? '',
                                     quantidade:
                                         item['quantidade']?.toInt() ?? 0,
-                                    item_pacote: item['item_pacote'] ?? '',
+                                    itemPacote: item['itemPacote'] ?? '',
                                     cupom: item['cupom'] ?? false,
                                     categoria: item['categoria'] ?? '',
                                   ),
@@ -251,7 +302,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                         resumo: item['resumo'] ?? '',
                                         quantidade:
                                             item['quantidade']?.toInt() ?? 0,
-                                        item_pacote: item['item_pacote'] ?? '',
+                                        itemPacote: item['itemPacote'] ?? '',
                                         cupom: item['cupom'] ?? false,
                                         categoria: item['categoria'] ?? '',
                                       ),
@@ -282,7 +333,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                   imagem: item['imagem'] ?? '',
                                   resumo: item['resumo'] ?? '',
                                   quantidade: item['quantidade']?.toInt() ?? 0,
-                                  item_pacote: item['item_pacote'] ?? '',
+                                  itemPacote: item['itemPacote'] ?? '',
                                   cupom: item['cupom'] ?? false,
                                   categoria: item['categoria'] ?? '',
                                 ),

@@ -15,7 +15,7 @@ class _PagamentoViewState extends State<PagamentoView> {
   String _nomeUsuario = '';
   String _nomeCompletoUsuario = '';
   int _numeroPedido = 0;
-  String _status = '';
+  String _statusPedido = '';
   String _uid = '';
   final LoginController loginController = LoginController();
 
@@ -40,8 +40,8 @@ class _PagamentoViewState extends State<PagamentoView> {
 
       if (pedidoDoc.exists) {
         setState(() {
-          _numeroPedido = pedidoDoc['numero_pedido'];
-          _status = pedidoDoc['status'];
+          _numeroPedido = pedidoDoc['numeroPedido'];
+          _statusPedido = pedidoDoc['statusPedido'];
           _uid = user.uid;
         });
       }
@@ -64,12 +64,12 @@ class _PagamentoViewState extends State<PagamentoView> {
           children: [
             // Exibir o número da cozinha
             Text(
-              'Número Cozinha: $numeroCozinha',
+              'Nº Cozinha: $numeroCozinha',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.red,
-                fontFamily: 'CarnevaleeFreakshow',
+                fontFamily: 'GAMERA',
               ),
             ),
             SizedBox(height: 10),
@@ -80,7 +80,7 @@ class _PagamentoViewState extends State<PagamentoView> {
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue,
-                fontFamily: 'CarnevaleeFreakshow',
+                fontFamily: 'GAMERA',
               ),
             ),
             SizedBox(height: 10),
@@ -97,18 +97,18 @@ class _PagamentoViewState extends State<PagamentoView> {
             SizedBox(height: 10),
             // Exibir o número do pedido
             Text(
-              'Número do Pedido: #$_numeroPedido',
+              'Nº Pedido: #$_numeroPedido',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Colors.green,
-                fontFamily: 'CarnevaleeFreakshow',
+                fontFamily: 'GAMERA',
               ),
             ),
             SizedBox(height: 10),
-            // Exibir o status do pedido
+            // Exibir o statusPedido do pedido
             Text(
-              'Status do Pedido: $_status',
+              'Status do Pedido: $_statusPedido',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -119,7 +119,7 @@ class _PagamentoViewState extends State<PagamentoView> {
             SizedBox(height: 10),
             // Exibir o UID
             Text(
-              'UID: $_uid',
+              'Registro: $_uid',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

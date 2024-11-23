@@ -19,10 +19,8 @@ class HistoricoViewState extends State<HistoricoView> {
     });
 
     if (index == 0) {
-      // Lógica para a tela de Menu
       Navigator.pushReplacementNamed(context, 'menu');
     } else if (index == 1) {
-      // Navegar para a tela de categorias
       Navigator.pushReplacementNamed(context, 'historico');
     } else if (index == 2) {
       Navigator.pushReplacementNamed(context, 'perfil');
@@ -37,7 +35,7 @@ class HistoricoViewState extends State<HistoricoView> {
 
   Future<void> carregarHistorico() async {
     try {
-      historico = List<Map<String, dynamic>>.from(await PedidoService().obterHistorico());
+      historico = await getIt<PedidoService>().obterHistoricoFiltrado();
       setState(() {});
     } catch (e) {
       Logger().e('Erro ao carregar histórico: $e');
@@ -58,8 +56,8 @@ class HistoricoViewState extends State<HistoricoView> {
               itemBuilder: (context, index) {
                 Map<String, dynamic> pedido = historico[index];
                 return ListTile(
-                  title: Text('Pedido #${pedido['numero_pedido'].toString()}'),
-                  subtitle: Text('Status: ${pedido['status'].toString()}'),
+                  title: Text('Pedido #${pedido['numeroPedido'].toString()}'),
+                  subtitle: Text('Status: ${pedido['statusPedido'].toString()}'),
                   trailing: Text('Data: ${DateTime.parse(pedido['data_hora']).toLocal().toString()}'),
                 );
               },
@@ -68,18 +66,9 @@ class HistoricoViewState extends State<HistoricoView> {
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
         items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Histórico',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos📜'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
     );

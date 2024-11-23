@@ -8,7 +8,7 @@ class Prato {
   String descricao;
   String resumo;
   int quantidade;
-  String item_pacote;
+  String itemPacote;
   bool cupom;
   String categoria;
 
@@ -19,7 +19,7 @@ class Prato {
     required this.descricao,
     required this.resumo,
     this.quantidade = 1,
-    this.item_pacote = 'pendente',
+    this.itemPacote = 'pendente',
     this.cupom = false,
     required this.categoria,
   });
@@ -47,7 +47,7 @@ class Prato {
       descricao: data.containsKey('descricao') ? data['descricao'] : '',
       resumo: data.containsKey('resumo') ? data['resumo'] : '',
       quantidade: data.containsKey('quantidade') ? data['quantidade'] : 1,
-      item_pacote: data.containsKey('item_pacote') ? data['item_pacote'] : 'pendente',
+      itemPacote: data.containsKey('itemPacote') ? data['itemPacote'] : 'pendente',
       cupom: data.containsKey('cupom') ? data['cupom'] : false,
       categoria: data.containsKey('categoria') ? data['categoria'] : '',
     );
@@ -92,7 +92,7 @@ class Prato {
           'descricao': prato.descricao,
           'resumo': prato.resumo,
           'quantidade': prato.quantidade,
-          'item_pacote': prato.item_pacote,
+          'itemPacote': prato.itemPacote,
           'cupom': prato.cupom,
           'categoria': categoria,
           'ativo': true,
