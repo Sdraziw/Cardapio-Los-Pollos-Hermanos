@@ -24,6 +24,7 @@ class LoginController {
       FirebaseFirestore.instance.collection('usuarios').add({
         'uid': value.user!.uid,
         'nome': nome,
+        'email': email,
       });
 
       sucesso(context, 'Usuário criado com sucesso.');

@@ -15,7 +15,7 @@ class _CadastroViewState extends State<CadastroView> {
   bool _obscureText2 = true;
 
   final txtNome = TextEditingController();
-  final txtUsuario = TextEditingController();
+  // final txtUsuario = TextEditingController();
   final txtEmail = TextEditingController();
   final txtConfirmaEmail = TextEditingController();
   final txtSenha = TextEditingController();

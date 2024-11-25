@@ -118,7 +118,7 @@ class _LoginViewState extends State<LoginView> {
                         filled: true,
                         fillColor:
                             clickCount >= 4 ? Colors.black54 : Colors.white,
-                        labelText: 'E-mail ou nome completo',
+                        labelText: 'E-mail',
                         labelStyle: TextStyle(
                           color: clickCount >= 4 ? Colors.white : Colors.black,
                         ),
@@ -132,7 +132,7 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Por favor, insira seu e-mail ou usuário';
+                          return 'Por favor, insira seu e-mail';
                         }
                         return null;
                       },

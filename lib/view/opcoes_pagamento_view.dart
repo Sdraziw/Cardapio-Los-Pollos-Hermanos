@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import '../services/pedido_service.dart'; // Importe o PedidoService
+import 'package:los_pollos_hermanos/services/pedido_service.dart';
 
 class OpcoesPagamentoView extends StatelessWidget {
-  const OpcoesPagamentoView({super.key});
+  final PedidoService pedidoService = GetIt.I<PedidoService>();
 
   @override
   Widget build(BuildContext context) {
-    final pedidoService =
-        GetIt.I<PedidoService>(); // Acesse o serviço de pedidos
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Opções de Pagamento'),
@@ -24,7 +21,7 @@ class OpcoesPagamentoView extends StatelessWidget {
               onTap: () async {
                 String numeroPedido = await pedidoService.gerarNumeroPedido();
                 // Adicionar o código para pagamento via Pix
-                await pedidoService.registrarPagamento(numeroPedido, 'Pix');
+                await pedidoService.registrarPagamento(context, numeroPedido, 'Pix');
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -36,8 +33,7 @@ class OpcoesPagamentoView extends StatelessWidget {
               },
               child: Column(
                 children: [
-                  Icon(Icons.payment,
-                      size: 60, color: Colors.blue), // Ícone de Pix
+                  Icon(Icons.payment, size: 60, color: Colors.blue), // Ícone de Pix
                   SizedBox(height: 10),
                   Text('Pagamento via Pix', style: TextStyle(fontSize: 18)),
                 ],
@@ -48,8 +44,8 @@ class OpcoesPagamentoView extends StatelessWidget {
             GestureDetector(
               onTap: () async {
                 String numeroPedido = await pedidoService.gerarNumeroPedido();
-                // Adicionar o código para pagamento via Pix
-                await pedidoService.registrarPagamento(numeroPedido, 'Cartão de Crédito');
+                // Adicionar o código para pagamento via Cartão de Crédito
+                await pedidoService.registrarPagamento(context, numeroPedido, 'Cartão de Crédito');
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -57,17 +53,13 @@ class OpcoesPagamentoView extends StatelessWidget {
                         'Pagamento via Cartão de Crédito confirmado!\nAguarde, seu pedido está sendo preparado!\nNúmero do pedido: $numeroPedido'),
                   ),
                 );
-                // Redirecionar para a tela de opções de pagamento ou outra
                 Navigator.pushNamed(context, 'menu');
               },
               child: Column(
                 children: [
-                  Icon(Icons.credit_card,
-                      size: 60,
-                      color: Colors.green), // Ícone de cartão de crédito
+                  Icon(Icons.credit_card, size: 60, color: Colors.green), // Ícone de Cartão de Crédito
                   SizedBox(height: 10),
-                  Text('Pagamento via Cartão de Crédito',
-                      style: TextStyle(fontSize: 18)),
+                  Text('Pagamento via Cartão de Crédito', style: TextStyle(fontSize: 18)),
                 ],
               ),
             ),

@@ -42,22 +42,26 @@ class CarrinhoViewState extends State<CarrinhoView> {
 
         if (pedidoDoc.exists) {
           String statusPedido = pedidoDoc['statusPedido'];
-          if (statusPedido == 'novo pedido' || statusPedido == 'aguardando pagamento') {
+          if (statusPedido == 'novo pedido' ||
+              statusPedido == 'aguardando pagamento') {
             setState(() {
               PedidoService().atualizarStatusPedido(context, statusPedido);
             });
           } else if (statusPedido == 'pagamento confirmado') {
             await registrarHistorico(user.uid, pedidoDoc);
             setState(() {
-              mensagemErro = 'Seu pedido foi finalizado e movido para o histórico.';
+              mensagemErro =
+                  'Seu pedido foi finalizado e movido para o histórico.';
             });
           } else {
             setState(() {
-              mensagemErro = 'Você não pode modificar um pedido com statusPedido "$statusPedido".';
+              mensagemErro =
+                  'Você não pode modificar um pedido com statusPedido "$statusPedido".';
             });
           }
         } else {
-          int novoNumeroPedido = await pedidoService.obterProximoNumeroPedido(context);
+          int novoNumeroPedido =
+              await pedidoService.obterProximoNumeroPedido(context);
           await pedidoRef.set({
             'numeroPedido': novoNumeroPedido,
             'statusPedido': 'novo pedido',
@@ -73,8 +77,12 @@ class CarrinhoViewState extends State<CarrinhoView> {
     }
   }
 
-  Future<void> registrarHistorico(String uid, DocumentSnapshot pedidoDoc) async {
-    final historicoRef = firestore.collection('pedidos').doc(uid).collection('historico_pedidos');
+  Future<void> registrarHistorico(
+      String uid, DocumentSnapshot pedidoDoc) async {
+    final historicoRef = firestore
+        .collection('pedidos')
+        .doc(uid)
+        .collection('historico_pedidos');
     final itensSnapshot = await pedidoDoc.reference.collection('itens').get();
     final itensData = itensSnapshot.docs.map((doc) => doc.data()).toList();
 
@@ -231,7 +239,8 @@ class CarrinhoViewState extends State<CarrinhoView> {
                           : null,
                       title: Text(
                         item['nome'] ?? 'Nome não disponível',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
                         '${item['descricao'] ?? 'Descrição não disponível'}\nPreço: R\$ ${(item['preco']?.toDouble() ?? 0.0).toStringAsFixed(2)} (cada)\nQuantidade: ${item['quantidade'] ?? 0}',
@@ -448,9 +457,29 @@ class CarrinhoViewState extends State<CarrinhoView> {
                             color: Colors.red),
                       ),
                       Text(
-                        'Total com ${percentualGorjeta.toStringAsFixed(1)}% de gorjeta: R\$ ${totalComGorjeta.toStringAsFixed(2)}\nAgradecemos! Seu incentivo é muito apreciado. 😊',
+                        'Total com ${percentualGorjeta.toStringAsFixed(1)}% de gorjeta: R\$ ${totalComGorjeta.toStringAsFixed(2)}',
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Agradecemos, seu incentivo é muito apreciado! Tanto ao tamanho do sorriso!',
+                        style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue),
+                      ),
+                      // Adiciona um emoji de sorriso ao final do texto se a gorgeja for maior o sorriso cresce conforme o valor
+                      Center(
+                        child: Text(
+                          '😊',
+                          style: TextStyle(
+                            fontSize: percentualGorjeta*2 > 100
+                                ? 100
+                                : percentualGorjeta*2,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
                       ),
                     ] else
                       Text(

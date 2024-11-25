@@ -4,6 +4,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 class MenuController {
   final FirebaseAuth auth = FirebaseAuth.instance;
 
+  /*// Adicionar categoria ao cardápio (Firestore)
+  Future<void> adicionarCategoria(String nome, String descricao, String imagem, int ordem) async {
+  await firestore.collection('categorias').add({
+    'nome': nome,
+    'descricao': descricao,
+    'imagem': imagem,
+    'ordem': ordem,
+  });
+  }
+  */
+
   Future<String> nomeCategoria(int ordem) async {
     var nome = "";
     await FirebaseFirestore.instance
@@ -31,6 +42,18 @@ class MenuController {
       });
     return ordem;
   }
+
+  /*// Adicionar item ao cardápio (Firestore)
+  Future<void> adicionarItemCardapio(String nome, String descricao, double preco, String imagem, bool ativo, String categoria) async {
+  await firestore.collection('itens_cardapio').add({
+    'nome': nome,
+    'descricao': descricao,
+    'preco': preco,
+    'imagem': imagem,
+    'ativo': ativo,
+    'categoria': categoria,
+  });
+  }*/
 
   Future<String> itensCardapioNome(categoria) async {
     var nome = "";

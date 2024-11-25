@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class PedidoService {
   String mensagemErro = '';
-  static const String _historicoKey = 'historicoPedidos';
+  static const String _historicoKey = 'Pedidos';
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -24,7 +24,10 @@ class PedidoService {
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
       final pedidoDoc = await pedidoRef.get();
       if (pedidoDoc.exists) {
-        return pedidoDoc['numeroPedido'].toString();
+        final pedidoData = pedidoDoc.data();
+        if (pedidoData != null && pedidoData['uid'] == user.uid) {
+          return pedidoData['numeroPedido'].toString();
+        }
       }
     }
     return '0';
@@ -54,10 +57,12 @@ class PedidoService {
           'categoria': prato.categoria,
         });
       } else {
-        QuerySnapshot query = await itensRef.where('nome', isEqualTo: prato.nome).get();
+        QuerySnapshot query =
+            await itensRef.where('nome', isEqualTo: prato.nome).get();
         DocumentSnapshot doc = query.docs.first;
         int quantidadeAtual = doc['quantidade'];
-        await doc.reference.update({'quantidade': quantidadeAtual + quantidade});
+        await doc.reference
+            .update({'quantidade': quantidadeAtual + quantidade});
       }
     }
   }
@@ -108,20 +113,38 @@ class PedidoService {
     return null;
   }
 
-  Future<void> atualizarStatusPedido(BuildContext context, String statusPedido) async {
+  Future<void> atualizarStatusPedido(
+      BuildContext context, String statusPedido) async {
     final user = auth.currentUser;
     if (user != null) {
       try {
         final pedidoRef = firestore.collection('pedidos').doc(user.uid);
-        await pedidoRef.update({'statusPedido': statusPedido});
-        ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: Colors.black.withOpacity(0.5),
-                  content: Text('Status atualizado com sucesso para: $statusPedido'),
-                ),
-              );
+        final pedidoDoc = await pedidoRef.get();
+        if (pedidoDoc.exists) {
+          await pedidoRef.update({'statusPedido': statusPedido});
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.black.withOpacity(0.5),
+              content:
+                  Text('Status atualizado com sucesso para: $statusPedido'),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red.withOpacity(0.5),
+              content: Text('Erro: Documento não encontrado.'),
+            ),
+          );
+        }
       } catch (e) {
         print('Erro ao atualizar statusPedido: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.withOpacity(0.5),
+            content: Text('Erro ao atualizar statusPedido: $e'),
+          ),
+        );
       }
     } else {
       print('Usuário não autenticado.');
@@ -144,7 +167,8 @@ class PedidoService {
     if (user != null) {
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
       final itensRef = pedidoRef.collection('itens');
-      QuerySnapshot query = await itensRef.where('nome', isEqualTo: prato.nome).get();
+      QuerySnapshot query =
+          await itensRef.where('nome', isEqualTo: prato.nome).get();
       if (query.docs.isNotEmpty) {
         await query.docs.first.reference.delete();
       }
@@ -158,7 +182,7 @@ class PedidoService {
   Future<void> registrarHistorico(String numeroPedido) async {
     final user = auth.currentUser;
     if (user != null) {
-      final historicoRef = firestore.collection('pedidos');
+      final historicoRef = firestore.collection('historicoPedidos');
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
       final pedidoDoc = await pedidoRef.get();
       if (pedidoDoc.exists) {
@@ -168,6 +192,7 @@ class PedidoService {
 
         await historicoRef.add({
           'uid': user.uid,
+          'email': user.email, // Adiciona o e-mail do usuário
           'numeroPedido': numeroPedido,
           'statusPedido': 'pedido finalizado',
           'itens': itensData,
@@ -181,49 +206,108 @@ class PedidoService {
     }
   }
 
-  Future<void> registrarPagamento(String numeroPedido, String formaPagamento) async {
+  Future<void> registrarPagamento(
+      BuildContext context, String numeroPedido, String formaPagamento) async {
     final user = auth.currentUser;
     if (user != null) {
-      final pedidoRef = firestore.collection('pedidos').doc(user.uid);
-      await pedidoRef.update({
-        'statusPedido': 'pagamento confirmado',
-        'forma_pagamento': formaPagamento,
-        'numeroPedido': numeroPedido,
-        'data_pagamento': FieldValue.serverTimestamp(),
-      });
+      try {
+        final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+        final pedidoDoc = await pedidoRef.get();
 
-      // Move o pedido para a coleção de histórico
-      await registrarHistorico(numeroPedido);
+        if (pedidoDoc.exists) {
+          final pedidoData = pedidoDoc.data();
+          if (pedidoData != null &&
+              pedidoData['numeroPedido'] == numeroPedido &&
+              pedidoData['uid'] == user.uid) {
+            await pedidoRef.update({
+              'statusPedido': 'pagamento confirmado',
+              'forma_pagamento': formaPagamento,
+              'numeroPedido': numeroPedido,
+              'data_pagamento': FieldValue.serverTimestamp(),
+              'email': user.email, // Adiciona o e-mail do usuário
+            });
+
+            // Move o pedido para a coleção de histórico
+            await registrarHistorico(numeroPedido);
+
+            // Limpa o novo pedido
+            limparPedido();
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                    'Pagamento confirmado! 💰\nAguarde, seu pedido está sendo preparado!⌛\nNúmero do pedido: $numeroPedido'),
+              ),
+            );
+            Navigator.pushNamed(context, 'menu');
+          } else {
+            // Limpa o carrinho se não for o carrinho atual
+            limparPedido();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: Colors.red.withOpacity(0.5),
+                content: Text('Carrinho não é o atual, foi limpo.'),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.withOpacity(0.5),
+            content: Text('Erro ao registrar pagamento: $e'),
+          ),
+        );
+      }
+    } else {
+      throw Exception('Usuário não autenticado.');
     }
   }
 
   Future<int> obterProximoNumeroPedido(BuildContext context) async {
-    final configRef = firestore.collection('config').doc('numeroPedido');
-    final configDoc = await configRef.get();
+    final user = auth.currentUser;
+    if (user != null) {
+      final configOnlineRef =
+          firestore.collection('configOnline').doc('numeroPedido');
+      final configOnlineDoc = await configOnlineRef.get();
 
-    if (configDoc.exists) {
-      int numeroPedido = configDoc['numero'] ?? 0;
-      await configRef.update({'numero': numeroPedido + 1});
-       ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: Colors.black.withOpacity(0.5),
-                  content: Text('Novo pedido gerado de número: ${numeroPedido + 1}.'),
-                ),
-              );
-      return numeroPedido + 1;
+      if (configOnlineDoc.exists) {
+        int numeroPedido = configOnlineDoc['numero'] ?? 0;
+        await configOnlineRef.update({
+          'numero': numeroPedido + 1,
+          'timestamp': FieldValue.serverTimestamp(),
+          'uid': user.uid,
+          'email': user.email, // Adiciona o e-mail do usuário
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.black.withOpacity(0.5),
+            content: Text('Novo pedido gerado de número: ${numeroPedido + 1}.'),
+          ),
+        );
+        return numeroPedido + 1;
+      } else {
+        await configOnlineRef.set({
+          'numero': 1,
+          'timestamp': FieldValue.serverTimestamp(),
+          'uid': user.uid,
+          'email': user.email, // Adiciona o e-mail do usuário
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.black.withOpacity(0.5),
+            content: Text('💾Primeiro pedido registrado em Firebase🔥🛢️.'),
+          ),
+        );
+        return 1;
+      }
     } else {
-      await configRef.set({'numero': 1});
-      ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: Colors.black.withOpacity(0.5),
-                  content: Text('💾Primeiro pedido registrado em Firebase🔥🛢️.'),
-                ),
-              );
-      return 1;
+      throw Exception('Usuário não autenticado.');
     }
   }
 
-  Future<void> atualizarItensPedido(String nome, int quantidade, Map<String, dynamic> data) async {
+  Future<void> atualizarItensPedido(
+      String nome, int quantidade, Map<String, dynamic> data) async {
     final user = auth.currentUser;
     if (user != null) {
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
@@ -261,22 +345,23 @@ class PedidoService {
   Future<List<Map<String, dynamic>>> obterHistoricoFiltrado() async {
     final user = auth.currentUser;
     if (user != null) {
-      final historicoRef = firestore.collection('pedidos');
+      final historicoRef = firestore.collection('historicoPedidos');
       final querySnapshot = await historicoRef
-          .where('uid', isEqualTo: user.uid)
-          .where('statusPedido', isEqualTo: 'pedido finalizado')
+          .where('email',
+              isEqualTo: user.email) // Filtra pelo e-mail do usuário
+          .orderBy('data_hora', descending: true)
           .get();
       return querySnapshot.docs.map((doc) {
         final data = doc.data();
         return {
-          'nome': data['nome'] ?? '',
-          'preco': (data['preco'] as num?)?.toDouble() ?? 0.0,
-          'imagem': data['imagem'] ?? '',
-          'resumo': data['resumo'] ?? '',
-          'quantidade': data['quantidade'] ?? 0,
-          'itemPacote': data['itemPacote'] ?? '',
-          'cupom': data['cupom'] ?? false,
-          'categoria': data['categoria'] ?? '',
+          'numeroPedido': data['numeroPedido'] ?? '',
+          'statusPedido': data['statusPedido'] ?? '',
+          'data_hora':
+              (data['data_hora'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          'itens': (data['itens'] as List<dynamic>?)
+                  ?.map((item) => item as Map<String, dynamic>)
+                  .toList() ??
+              [],
         };
       }).toList();
     }
@@ -293,11 +378,11 @@ class PedidoService {
 
         if (pedidoDoc.exists) {
           String statusPedido = pedidoDoc['statusPedido'];
-          if (statusPedido == 'novo pedido' || statusPedido == 'aguardando pagamento' || statusPedido == 'pedido aberto') {
-            
-              // Atualiza a tela com o pedido existente de statusPedido novo pedido ou aguardando pagamento
-              await atualizarStatusPedido(context, statusPedido);
-            
+          if (statusPedido == 'novo pedido' ||
+              statusPedido == 'aguardando pagamento' ||
+              statusPedido == 'pedido aberto') {
+            // Atualiza a tela com o pedido existente de statusPedido novo pedido ou aguardando pagamento
+            await atualizarStatusPedido(context, statusPedido);
           } else if (statusPedido == 'pagamento confirmado') {
             // Mantém o pedido com statusPedido "pagamento confirmado" e cria um novo pedido
             int novoNumeroPedido = await obterProximoNumeroPedido(context);
@@ -306,16 +391,15 @@ class PedidoService {
               'numeroPedido': novoNumeroPedido,
               'statusPedido': 'novo pedido',
               'data': FieldValue.serverTimestamp(),
+              'email': user.email, // Adiciona o e-mail do usuário
             });
-            
-              // Atualiza a tela com o novo pedido criado
-              await atualizarStatusPedido(context, 'novo pedido');
-            
+
+            // Atualiza a tela com o novo pedido criado
+            await atualizarStatusPedido(context, 'novo pedido');
           } else {
             // Mantém o pedido com statusPedido diferente de "novo pedido" ou "aguardando pagamento"
-            
-              mensagemErro = 'Você não pode modificar um pedido com statusPedido "$statusPedido".';
-            
+            mensagemErro =
+                'Você não pode modificar um pedido com statusPedido "$statusPedido".';
           }
         } else {
           int novoNumeroPedido = await obterProximoNumeroPedido(context);
@@ -323,19 +407,26 @@ class PedidoService {
             'numeroPedido': novoNumeroPedido,
             'statusPedido': 'pedido aberto',
             'data': FieldValue.serverTimestamp(),
+            'email': user.email, // Adiciona o e-mail do usuário
           });
-          
-            // Atualiza a tela com o novo pedido criado
-            await atualizarStatusPedido(context, 'pedido aberto');
-          
+
+          // Atualiza a tela com o novo pedido criado
+          await atualizarStatusPedido(context, 'pedido aberto');
         }
       } catch (e) {
         print('Erro ao verificar pedido existente: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.withOpacity(0.5),
+            content: Text('Erro ao verificar pedido existente: $e'),
+          ),
+        );
       }
     }
   }
 
-  Future<void> aplicarCodigoPromocional(BuildContext context, String codigo) async {
+  Future<void> aplicarCodigoPromocional(
+      BuildContext context, String codigo) async {
     bool lanche2024 = true;
     bool sobremesa2024 = true;
     Prato? pratoGratuito;
@@ -355,7 +446,8 @@ class PedidoService {
         categoria: 'Sobremesas',
       );
       // Verifica se o item já foi adicionado por cupom
-      bool itemAdicionadoPorCupom = await verificarItemAdicionadoPorCupom(pratoGratuito.nome);
+      bool itemAdicionadoPorCupom =
+          await verificarItemAdicionadoPorCupom(pratoGratuito.nome);
       if (!itemAdicionadoPorCupom) {
         // Adicione o prato gratuito ao pedido no Firebase
         await adicionarAoPedido(pratoGratuito, 1);
@@ -389,7 +481,8 @@ class PedidoService {
         categoria: 'Lanches',
       );
       // Verifica se o item já foi adicionado por cupom
-      bool itemAdicionadoPorCupom = await verificarItemAdicionadoPorCupom(pratoGratuito.nome);
+      bool itemAdicionadoPorCupom =
+          await verificarItemAdicionadoPorCupom(pratoGratuito.nome);
       if (!itemAdicionadoPorCupom) {
         // Adicione o prato gratuito ao pedido no Firebase
         await adicionarAoPedido(pratoGratuito, 1);
@@ -425,7 +518,12 @@ class PedidoService {
     if (user != null) {
       final pedidoRef = firestore.collection('pedidos').doc(user.uid);
       final itensRef = pedidoRef.collection('itens');
-      QuerySnapshot query = await itensRef.where('nome', isEqualTo: nome).where('cupom', isEqualTo: true).get();
+      QuerySnapshot query = await itensRef
+          .where('nome', isEqualTo: nome)
+          .where('cupom', isEqualTo: true)
+          .where('email',
+              isEqualTo: user.email) // Filtra pelo e-mail do usuário
+          .get();
       return query.docs.isNotEmpty;
     }
     return false;

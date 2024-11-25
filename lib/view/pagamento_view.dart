@@ -64,7 +64,7 @@ class _PagamentoViewState extends State<PagamentoView> {
           children: [
             // Exibir o número da cozinha
             Text(
-              'Nº Cozinha: $numeroCozinha',
+              'Cozinha: $numeroCozinha',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -97,7 +97,7 @@ class _PagamentoViewState extends State<PagamentoView> {
             SizedBox(height: 10),
             // Exibir o número do pedido
             Text(
-              'Nº Pedido: #$_numeroPedido',
+              'Pedido: #$_numeroPedido',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -117,16 +117,7 @@ class _PagamentoViewState extends State<PagamentoView> {
               ),
             ),
             SizedBox(height: 10),
-            // Exibir o UID
-            Text(
-              'Registro: $_uid',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-                fontFamily: 'CarnevaleeFreakshow',
-              ),
-            ),
+            
             SizedBox(height: 20), // Espaçamento entre o texto e a imagem
             // Exibir a imagem
             Image.asset(
@@ -148,6 +139,17 @@ class _PagamentoViewState extends State<PagamentoView> {
                 foregroundColor: Colors.black,
               ),
               child: Text('Pagar Antecipadamente'),
+            ),
+            SizedBox(height: 30),
+            // Exibir o UID
+            Text(
+              'Registro: $_uid',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                fontFamily: 'CarnevaleeFreakshow',
+              ),
             ),
           ],
         ),
