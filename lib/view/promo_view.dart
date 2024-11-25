@@ -34,6 +34,13 @@ class PromoView extends StatelessWidget {
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
+                shadows: [
+                  Shadow(
+                    offset: Offset(1.5, 1.5),
+                    blurRadius: 6.0,
+                    color: Colors.black,
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 30),
@@ -101,7 +108,7 @@ class PromoView extends StatelessWidget {
                     ),
                     TextSpan(
                       text:
-                          'Necessário uma compra de outro item qualquer do cardápio. Apresente para um atendente junto ao número de pedido e irá ganhar 1 lanche extra!',
+                          'Necessário uma compra de outro item qualquer do cardápio. Solicite junto ao carrinho no pedido e irá ganhar 1 lanche extra!',
                     ),
                   ],
                 ),

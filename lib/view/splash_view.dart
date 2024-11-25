@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-
 import 'package:audioplayers/audioplayers.dart';
 
 class SplashView extends StatefulWidget {
@@ -23,8 +22,38 @@ class SplashViewState extends State<SplashView> {
     // Inicia a configuração do áudio
     _iniciarAudio();
 
+    // Mostra o SnackBar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: Duration(seconds: 7),
+          backgroundColor: Colors.white.withOpacity(0.5),
+          content: DefaultTextStyle(
+            style: TextStyle(fontSize: 9),
+            child: Text(
+              'Que calor, devo estar delirando melhor pedir logo uma bebida bem gelada!\nEstou com sede!\nAinda mais escutando essa música da série!',
+            ),
+          ),
+        ),
+        
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: Duration(seconds: 5),
+          backgroundColor: Colors.white.withOpacity(0.5),
+          content: DefaultTextStyle(
+            style: TextStyle(fontSize: 9),
+            child: Text(
+              'Olhe para esse sol escaldante, estou ficando com sede só de olhar!\n Será que tem uma sombra ou algo para beber por aqui?',
+            ),
+          ),
+        ),
+        
+      );
+    });
+
     // Navega para a próxima tela após 5 segundos
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 7), () {
       if (videoController.value.isInitialized && mounted) {
         Navigator.pushNamed(context, 'login');
       }
@@ -124,8 +153,7 @@ class SplashViewState extends State<SplashView> {
               decoration: BoxDecoration(
                 color: containerColor, // Usar a cor do container
                 image: DecorationImage(
-                  image:
-                      AssetImage(desertImage), // Caminho da imagem do deserto
+                  image: AssetImage(desertImage), // Caminho da imagem do deserto
                   fit: BoxFit.cover, // Preenche a largura
                 ),
                 border: Border.all(

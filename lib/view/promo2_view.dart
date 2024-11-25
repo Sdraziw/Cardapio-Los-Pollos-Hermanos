@@ -101,7 +101,7 @@ class Promo2View extends StatelessWidget {
                     ),
                     TextSpan(
                       text:
-                          'Necessário uma compra de outro item qualquer do cardápio. Apresente para um atendente junto ao número de pedido e irá ganhar a sobremesa extra!',
+                          'Necessário uma compra de outro item qualquer do cardápio. Solicite junto ao carrinho no pedido e irá ganhar a sobremesa extra!',
                     ),
                   ],
                 ),
