@@ -36,7 +36,7 @@ class _PagamentoViewState extends State<PagamentoView> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final pedidoRef = FirebaseFirestore.instance.collection('pedidos').doc(user.uid);
-      final pedidoDoc = await pedidoRef.get(); //trava aqui e não continua depois de pegar o pedido do banco
+      final pedidoDoc = await pedidoRef.get(); // Buscar o documento do pedido
 
       if (pedidoDoc.exists) {
         setState(() {

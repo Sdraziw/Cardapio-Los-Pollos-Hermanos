@@ -37,7 +37,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
     final user = auth.currentUser;
     if (user != null) {
       try {
-        final pedidoRef = firestore.collection('pedidos').doc(user.uid);
+        final pedidoRef = firestore.collection('pedidos').doc(user.email);
         final pedidoDoc = await pedidoRef.get();
 
         if (pedidoDoc.exists) {
@@ -48,7 +48,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
               PedidoService().atualizarStatusPedido(context, statusPedido);
             });
           } else if (statusPedido == 'pagamento confirmado') {
-            await registrarHistorico(user.uid, pedidoDoc);
+            await registrarHistorico(user, pedidoDoc);
             setState(() {
               mensagemErro =
                   'Seu pedido foi finalizado e movido para o histórico.';
@@ -66,10 +66,13 @@ class CarrinhoViewState extends State<CarrinhoView> {
             'numeroPedido': novoNumeroPedido,
             'statusPedido': 'novo pedido',
             'data': FieldValue.serverTimestamp(),
+            'email': user.email,
           });
-          setState(() {
-            PedidoService().atualizarStatusPedido(context, 'novo pedido');
-          });
+          if (mounted) {
+            setState(() {
+              PedidoService().atualizarStatusPedido(context, 'novo pedido');
+            });
+          }
         }
       } catch (e) {
         print('Erro ao verificar pedido existente: $e');
@@ -77,17 +80,17 @@ class CarrinhoViewState extends State<CarrinhoView> {
     }
   }
 
-  Future<void> registrarHistorico(
-      String uid, DocumentSnapshot pedidoDoc) async {
+  Future<void> registrarHistorico(User user, DocumentSnapshot pedidoDoc) async {
     final historicoRef = firestore
         .collection('pedidos')
-        .doc(uid)
+        .doc(user.email)
         .collection('historico_pedidos');
     final itensSnapshot = await pedidoDoc.reference.collection('itens').get();
     final itensData = itensSnapshot.docs.map((doc) => doc.data()).toList();
 
     await historicoRef.add({
-      'uid': uid,
+      'email': user.email,
+      'uid': user.uid,
       'numeroPedido': pedidoDoc['numeroPedido'],
       'statusPedido': 'pedido finalizado',
       'itens': itensData,
@@ -473,9 +476,9 @@ class CarrinhoViewState extends State<CarrinhoView> {
                         child: Text(
                           '😊',
                           style: TextStyle(
-                            fontSize: percentualGorjeta*2 > 100
+                            fontSize: percentualGorjeta * 2 > 100
                                 ? 100
-                                : percentualGorjeta*2,
+                                : percentualGorjeta * 2,
                             fontWeight: FontWeight.bold,
                             color: Colors.blue,
                           ),

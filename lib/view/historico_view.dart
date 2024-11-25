@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/pedido_service.dart';
 import 'package:logger/logger.dart';
 
+PedidoService pedidoService = PedidoService();
 class HistoricoView extends StatefulWidget {
   const HistoricoView({super.key});
 
@@ -35,7 +36,7 @@ class HistoricoViewState extends State<HistoricoView> {
 
   Future<void> carregarHistorico() async {
     try {
-      historico = await getIt<PedidoService>().obterHistoricoFiltrado();
+      historico = List<Map<String, dynamic>>.from(await pedidoService.obterHistorico());
       setState(() {});
     } catch (e) {
       Logger().e('Erro ao carregar histórico: $e');
