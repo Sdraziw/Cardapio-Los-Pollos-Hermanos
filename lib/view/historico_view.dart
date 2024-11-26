@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../services/pedido_service.dart';
 import 'package:logger/logger.dart';
+import '../controller/login_controller.dart'; 
 
 PedidoService pedidoService = PedidoService();
 class HistoricoView extends StatefulWidget {
-  const HistoricoView({super.key});
+  HistoricoView({super.key});
+  final LoginController loginController = LoginController();
 
   @override
   HistoricoViewState createState() => HistoricoViewState();
@@ -44,12 +46,40 @@ class HistoricoViewState extends State<HistoricoView> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Histórico de Pedidos'),
-        backgroundColor: Color(0xFFFFD600),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60.0),
+        child: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FutureBuilder<String>(
+                future: widget.loginController.usuarioLogadoPrimeiroNome(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Text('Erro ao carregar dados: ${snapshot.error}');
+                  } else {
+                    return Text(
+                      '\nPEDIDOS de ${snapshot.data}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'CarnevaleeFreakshow',
+                        color: Colors.black,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+          backgroundColor: Color(0xFFFFD600),
+        ),
       ),
+        
       body: historico.isEmpty
           ? Center(child: Text('Nenhum pedido finalizado encontrado'))
           : ListView.builder(
@@ -59,7 +89,7 @@ class HistoricoViewState extends State<HistoricoView> {
                 final itens = pedido['itens'] as List<Map<String, dynamic>>;
                 return ExpansionTile(
                   title: Text('Pedido #${pedido['numeroPedido']}'),
-                  subtitle: Text('Status: ${pedido['statusPedido']}'),
+                  subtitle: Text('Status: ${pedido['status']}'),
                   children: itens.map((item) {
                     return ListTile(
                       leading: item['imagem'].isNotEmpty
@@ -81,8 +111,8 @@ class HistoricoViewState extends State<HistoricoView> {
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu🍔'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos📦'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),

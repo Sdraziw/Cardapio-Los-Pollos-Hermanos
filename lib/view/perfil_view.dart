@@ -11,7 +11,7 @@ class PerfilView extends StatefulWidget {
 }
 
 class PerfilViewState extends State<PerfilView> {
-  final LoginController _controller = LoginController();
+  final LoginController loginController = LoginController();
   String? email = FirebaseAuth.instance.currentUser?.email;
 
   bool obscureText_ = true;
@@ -39,14 +39,32 @@ class PerfilViewState extends State<PerfilView> {
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFFFFD600),
         title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Perfil de Usuário'),
                 Image.network(
                   'lib/images/heads.png',
                   height: 40,
+                ),
+                FutureBuilder<String>(
+                  future: loginController.usuarioLogadoPrimeiroNome(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Text('Erro ao carregar dados: ${snapshot.error}');
+                    } else {
+                      return Text(
+                        '\n ${snapshot.data}! PERFIL',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'CarnevaleeFreakshow',
+                          color: Colors.black,
+                        ),
+                      );
+                    }
+                  },
                 ),
               ],
             ),
@@ -75,7 +93,7 @@ class PerfilViewState extends State<PerfilView> {
             ),
             const SizedBox(height: 40),
             FutureBuilder<String>(
-              future: _controller.usuarioLogadoNome(),
+              future: loginController.usuarioLogadoNome(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
@@ -116,7 +134,7 @@ class PerfilViewState extends State<PerfilView> {
             ),
             const SizedBox(height: 20),
             FutureBuilder<String>(
-              future: _controller.usuarioLogadoSenha(),
+              future: loginController.usuarioLogadoSenha(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
@@ -166,7 +184,8 @@ class PerfilViewState extends State<PerfilView> {
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Deslogando...\nDirecionado para a página de Login!'),
+                    content: Text(
+                        'Deslogando...\nDirecionado para a página de Login!'),
                   ),
                 );
 
@@ -193,7 +212,8 @@ class PerfilViewState extends State<PerfilView> {
         onTap: _onTabTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_long), label: 'Pedidos'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil👤'),
         ],
       ),

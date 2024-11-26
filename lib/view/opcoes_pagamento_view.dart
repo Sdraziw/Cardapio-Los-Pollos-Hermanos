@@ -19,17 +19,15 @@ class OpcoesPagamentoView extends StatelessWidget {
             // Ícone e botão para pagamento via Pix
             GestureDetector(
               onTap: () async {
-                String numeroPedido = await pedidoService.gerarNumeroPedido();
+                String numeroPedido = await pedidoService.verificarOuGerarNumeroPedido();
                 // Adicionar o código para pagamento via Pix
                 await pedidoService.registrarPagamento(context, numeroPedido, 'Pix');
-
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                         'Pagamento via Pix confirmado! 💰\nAguarde, seu pedido está sendo preparado!⌛\nNúmero do pedido: $numeroPedido'),
                   ),
                 );
-                Navigator.pushNamed(context, 'menu');
               },
               child: Column(
                 children: [
@@ -43,17 +41,15 @@ class OpcoesPagamentoView extends StatelessWidget {
             // Ícone e botão para pagamento via cartão de crédito
             GestureDetector(
               onTap: () async {
-                String numeroPedido = await pedidoService.gerarNumeroPedido();
+                String numeroPedido = await pedidoService.verificarOuGerarNumeroPedido();
                 // Adicionar o código para pagamento via Cartão de Crédito
                 await pedidoService.registrarPagamento(context, numeroPedido, 'Cartão de Crédito');
-
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                         'Pagamento via Cartão de Crédito confirmado!\nAguarde, seu pedido está sendo preparado!\nNúmero do pedido: $numeroPedido'),
                   ),
                 );
-                Navigator.pushNamed(context, 'menu');
               },
               child: Column(
                 children: [

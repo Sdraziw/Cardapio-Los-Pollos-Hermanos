@@ -2,17 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class Prato {
-  String nome;
-  double preco; // Alterado para double
-  String imagem;
-  String descricao;
-  String resumo;
+  final String id;
+  final String nome;
+  final double preco;
+  final String imagem;
+  final String descricao;
+  final String resumo;
   int quantidade;
-  String itemPacote;
-  bool cupom;
-  String categoria;
+  final String itemPacote;
+  final bool cupom;
+  final String categoria;
 
   Prato({
+    required this.id,
     required this.nome,
     required this.preco,
     required this.imagem,
@@ -41,6 +43,7 @@ class Prato {
   static Prato fromDocument(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return Prato(
+      id: data.containsKey('id') ? data['id'] : '',
       nome: data.containsKey('nome') ? data['nome'] : '',
       preco: data.containsKey('preco') ? (data['preco'] as num).toDouble() : 0.0,
       imagem: data.containsKey('imagem') ? data['imagem'] : '',
@@ -53,53 +56,22 @@ class Prato {
     );
   }
 
-  // Método estático para buscar todos os itens do Firestore
-  static Future<List<Prato>> buscarTodos() async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('itens_cardapio').get();
-    return querySnapshot.docs.map((doc) => Prato.fromDocument(doc)).toList();
+  // Factory para criar uma instância de Prato a partir de um mapa
+  factory Prato.fromMap(Map<String, dynamic> map) {
+    return Prato(
+      id: map.containsKey('id') ? map['id'] : '',
+      nome: map.containsKey('nome') ? map['nome'] : '',
+      preco: map.containsKey('preco') ? (map['preco'] as num).toDouble() : 0.0,
+      imagem: map.containsKey('imagem') ? map['imagem'] : '',
+      descricao: map.containsKey('descricao') ? map['descricao'] : '',
+      resumo: map.containsKey('resumo') ? map['resumo'] : '',
+      quantidade: map.containsKey('quantidade') ? map['quantidade'] : 1,
+      itemPacote: map.containsKey('itemPacote') ? map['itemPacote'] : 'pendente',
+      cupom: map.containsKey('cupom') ? map['cupom'] : false,
+      categoria: map.containsKey('categoria') ? map['categoria'] : '',
+    );
   }
-
-  // Método estático para buscar um item específico pelo nome
-  static Future<Prato?> buscarPorNome(String nome) async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('itens_cardapio')
-        .where('nome', isEqualTo: nome)
-        .get();
-    if (querySnapshot.docs.isNotEmpty) {
-      return Prato.fromDocument(querySnapshot.docs.first);
-    }
-    return null;
-  }
-
-  // Método estático para verificar se um item já existe no Firestore
-  static Future<bool> itemExiste(String nome) async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('itens_cardapio')
-        .where('nome', isEqualTo: nome)
-        .get();
-    return querySnapshot.docs.isNotEmpty;
-  }
-
-  // Método estático para adicionar itens ao Firestore
-  static Future<void> adicionarItensAoFirestore(List<Prato> pratos, String categoria) async {
-    for (Prato prato in pratos) {
-      bool existe = await itemExiste(prato.nome);
-      if (!existe) {
-        await FirebaseFirestore.instance.collection('itens_cardapio').add({
-          'nome': prato.nome,
-          'preco': prato.preco, // Armazenar como número
-          'imagem': prato.imagem,
-          'descricao': prato.descricao,
-          'resumo': prato.resumo,
-          'quantidade': prato.quantidade,
-          'itemPacote': prato.itemPacote,
-          'cupom': prato.cupom,
-          'categoria': categoria,
-          'ativo': true,
-        });
-      }
-    }
-  }
+}
 /*
 
   // Método estático para geração de Entradas
@@ -335,4 +307,3 @@ class Prato {
   }
 
   */
-}

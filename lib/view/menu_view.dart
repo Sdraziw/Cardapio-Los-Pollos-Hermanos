@@ -36,7 +36,7 @@ class MenuViewState extends State<MenuView> {
                     return Text('Erro ao carregar dados: ${snapshot.error}');
                   } else {
                     return Text(
-                      'Bem-vindo, ${snapshot.data}',
+                      '\nBem-vindo, ${snapshot.data}! -  Los Pollos Hermanos! MENU',
                       style: TextStyle(
                         fontSize: 16,
                         fontFamily: 'CarnevaleeFreakshow',
@@ -61,14 +61,16 @@ class MenuViewState extends State<MenuView> {
                         },
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.search),
-                          hintText: 'Digite aqui para pesquisar...',
+                          hintText: 'Digite aqui para pesquisar...(itens ou categorias)',
+                          hintTextDirection: TextDirection.ltr,
+                          hintStyle: TextStyle(fontSize: 12),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30.0),
+                            borderRadius: BorderRadius.circular(50.0),
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
                           fillColor: Colors.white,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 5),
                         ),
                       ),
                     ),
@@ -82,6 +84,7 @@ class MenuViewState extends State<MenuView> {
                   ),
                 ],
               ),
+              SizedBox(height: 10),
             ],
           ),
           backgroundColor: Color(0xFFFFD600),

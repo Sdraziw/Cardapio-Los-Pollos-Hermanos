@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../controller/login_controller.dart'; 
+import 'package:get_it/get_it.dart';
+import '../controller/login_controller.dart';
+import '../services/pedido_service.dart';
 import 'dart:math';
 
 class PagamentoView extends StatefulWidget {
@@ -14,16 +16,17 @@ class PagamentoView extends StatefulWidget {
 class _PagamentoViewState extends State<PagamentoView> {
   String _nomeUsuario = '';
   String _nomeCompletoUsuario = '';
-  int _numeroPedido = 0;
-  String _statusPedido = '';
+  String _numeroPedido = '';
+  String _status = 'preparando';
   String _uid = '';
   final LoginController loginController = LoginController();
+  final PedidoService pedidoService = GetIt.I<PedidoService>();
 
   @override
   void initState() {
     super.initState();
-    _buscarInformacoesPedido();
     _carregarNomeUsuario();
+    _buscarInformacoesPedido();
   }
 
   Future<void> _carregarNomeUsuario() async {
@@ -35,13 +38,14 @@ class _PagamentoViewState extends State<PagamentoView> {
   Future<void> _buscarInformacoesPedido() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final pedidoRef = FirebaseFirestore.instance.collection('pedidos').doc(user.uid);
-      final pedidoDoc = await pedidoRef.get(); // Buscar o documento do pedido
+      final numeroPedido = await pedidoService.verificarOuGerarNumeroPedido();
+      final pedidoRef = FirebaseFirestore.instance.collection('pedidos').doc(numeroPedido);
+      final pedidoDoc = await pedidoRef.get();
 
       if (pedidoDoc.exists) {
         setState(() {
-          _numeroPedido = pedidoDoc['numeroPedido'];
-          _statusPedido = pedidoDoc['statusPedido'];
+          _numeroPedido = numeroPedido;
+          _status = pedidoDoc['status'];
           _uid = user.uid;
         });
       }
@@ -62,7 +66,7 @@ class _PagamentoViewState extends State<PagamentoView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Exibir o número da cozinha
+            // Exibir o número da cozinha aleatório futuramente implementar
             Text(
               'Cozinha: $numeroCozinha',
               style: TextStyle(
@@ -102,13 +106,12 @@ class _PagamentoViewState extends State<PagamentoView> {
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Colors.green,
-                fontFamily: 'GAMERA',
               ),
             ),
             SizedBox(height: 10),
-            // Exibir o statusPedido do pedido
+            // Exibir o status do pedido
             Text(
-              'Status do Pedido: $_statusPedido',
+              'Status do Pedido: $_status',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -117,7 +120,6 @@ class _PagamentoViewState extends State<PagamentoView> {
               ),
             ),
             SizedBox(height: 10),
-            
             SizedBox(height: 20), // Espaçamento entre o texto e a imagem
             // Exibir a imagem
             Image.asset(
