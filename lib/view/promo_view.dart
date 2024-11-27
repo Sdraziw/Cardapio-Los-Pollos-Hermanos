@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class PromoView extends StatelessWidget {
+  final AudioPlayer audioPlayer = AudioPlayer();
   PromoView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    iniciarAudioFrangoParrudo();
       return Scaffold(
         appBar: AppBar(
           title: const Text('Cê é LOCO cachoeira! '),
@@ -143,5 +146,23 @@ class PromoView extends StatelessWidget {
       ),
     );
   }
+  Future<void> iniciarAudioFrangoParrudo() async {
+    // audioPlayer = AudioPlayer();
+    try {
+      // Carrega o áudio de um URL absoluto para teste
+      await audioPlayer.setSourceUrl('lib/audios/chicken-noise.mp3');
 
+      // Define o volume para 50%
+      await audioPlayer.setVolume(0.3);
+
+      // Define o modo de liberação para repetir o áudio em loop
+      //audioPlayer.setReleaseMode(ReleaseMode.loop);
+
+      // Inicia a reprodução
+      await audioPlayer.resume();
+    } catch (error) {
+      debugPrint('Erro ao carregar áudio: $error');
+      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+    }
+  }
 }

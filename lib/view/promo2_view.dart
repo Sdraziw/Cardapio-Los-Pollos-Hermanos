@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class Promo2View extends StatelessWidget {
-  const Promo2View({super.key});
+  final AudioPlayer audioPlayer = AudioPlayer();
+  
+  Promo2View({super.key});
 
   @override
   Widget build(BuildContext context) {
+    iniciarAudioIceCream();
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('OPA! Eu Tanko!  '),
@@ -135,5 +140,24 @@ class Promo2View extends StatelessWidget {
         ),
       ),
     );
+  }
+  Future<void> iniciarAudioIceCream() async {
+    // audioPlayer = AudioPlayer();
+    try {
+      // Carrega o áudio de um URL absoluto para teste
+      await audioPlayer.setSourceUrl('lib/audios/ice-cream-truck.mp3');
+
+      // Define o volume para 50%
+      await audioPlayer.setVolume(0.1);
+
+      // Define o modo de liberação para repetir o áudio em loop
+      //audioPlayer.setReleaseMode(ReleaseMode.loop);
+
+      // Inicia a reprodução
+      await audioPlayer.resume();
+    } catch (error) {
+      debugPrint('Erro ao carregar áudio: $error');
+      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+    }
   }
 }

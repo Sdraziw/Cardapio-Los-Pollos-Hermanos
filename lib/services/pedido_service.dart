@@ -12,7 +12,7 @@ class PedidoService {
   static const String historicoKey = 'pedidos';
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
+  int contador = 0;
   final List<Prato> _pedidos = [];
   List<Prato> get pedidos => _pedidos;
 
@@ -58,6 +58,24 @@ class PedidoService {
     }
   }
 
+  Future<int> consultarQuantidadeItensCarrinho() async {
+    final user = auth.currentUser;
+    if (user == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final numeroPedido = await verificarOuGerarNumeroPedido();
+    final pedidoRef = firestore.collection('pedidos').doc(numeroPedido);
+    final itensSnapshot = await pedidoRef.collection('itens').get();
+
+    int quantidadeTotal = 0;
+    for (var doc in itensSnapshot.docs) {
+      quantidadeTotal += (doc.data()['quantidade'] ?? 0) as int;
+    }
+
+    return quantidadeTotal;
+  }
+
   Future<String> atualizarStatusPedido(
       BuildContext context, String numeroPedido, String status) async {
     final user = auth.currentUser;
@@ -98,19 +116,21 @@ class PedidoService {
   }
 
   void _showSnackBar(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: color.withOpacity(0.5),
-        duration: Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-        padding: EdgeInsets.all(10.0),
-        content: Text(
-          message,
-          style: TextStyle(fontSize: 10),
+    if (contador == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: color.withOpacity(0.5),
+          duration: Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          padding: EdgeInsets.all(5.0),
+          content: Text(
+            message,
+            style: TextStyle(fontSize: 10),
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   void adicionarPratoAoPedido(Prato prato) {
@@ -191,6 +211,7 @@ class PedidoService {
             .update({'quantidade': quantidadeAtual + quantidade});
         _showSnackBar(
             context, 'Quantidade do item atualizada com sucesso', Colors.green);
+        contador = 1;
       }
     } catch (e) {
       _showSnackBar(
@@ -277,7 +298,8 @@ class PedidoService {
     return [];
   }
 
-  Stream<List<Map<String, dynamic>>> buscarItensPedidoPorStatusStream(String numeroPedido) {
+  Stream<List<Map<String, dynamic>>> buscarItensPedidoPorStatusStream(
+      String numeroPedido) {
     final user = auth.currentUser;
     if (user == null) {
       throw Exception('Usuário não autenticado');
@@ -299,6 +321,44 @@ class PedidoService {
           'categoria': data['categoria'] ?? '',
         };
       }).toList();
+    });
+  }
+
+  Stream<List<Map<String, dynamic>>> buscarItensPedidoFinalizadosStream() {
+    final user = auth.currentUser;
+    if (user == null) {
+      throw Exception('Usuário não autenticado');
+    }
+  
+    final pedidosRef = firestore.collection('pedidos');
+    return pedidosRef
+        .where('email', isEqualTo: user.email)
+        .where('status', isEqualTo: 'finalizado')
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final List<Map<String, dynamic>> allItems = [];
+      for (var doc in snapshot.docs) {
+        final numeroPedido = doc.id;
+        final itensRef = pedidosRef.doc(numeroPedido).collection('itens');
+        final itensSnapshot = await itensRef.get();
+        final items = itensSnapshot.docs.map((itemDoc) {
+          final itemData = itemDoc.data();
+          return {
+            'numeroPedido': numeroPedido,
+            'nome': itemData['nome'] ?? '',
+            'descricao': itemData['descricao'] ?? '',
+            'preco': (itemData['preco'] as num?)?.toDouble() ?? 0.0,
+            'imagem': itemData['imagem'] ?? '',
+            'resumo': itemData['resumo'] ?? '',
+            'quantidade': itemData['quantidade'] ?? 0,
+            'itemPacote': itemData['itemPacote'] ?? '',
+            'cupom': itemData['cupom'] ?? false,
+            'categoria': itemData['categoria'] ?? '',
+          };
+        }).toList();
+        allItems.addAll(items);
+      }
+      return allItems;
     });
   }
 
@@ -384,9 +444,11 @@ class PedidoService {
 
       if (pedidoDoc.exists) {
         final pedidoData = pedidoDoc.data();
-        if (pedidoData != null && pedidoData['numeroPedido'] == numeroPedido) {
+        if (pedidoData != null &&
+            pedidoData['email'] == user.email &&
+            pedidoData['status'] == 'preparando') {
           await pedidoRef.update({
-            'status': 'pagamento confirmado',
+            'status': 'finalizado',
             'formaPagamento': formaPagamento,
             'dataPagamento': FieldValue.serverTimestamp(),
           });
@@ -395,7 +457,7 @@ class PedidoService {
           await registrarHistorico(pedidoData);
 
           // Limpa o novo pedido
-          await limparPedido();
+          // await limparPedido();
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -596,5 +658,20 @@ class PedidoService {
       return pedidosSnapshot.docs.map((doc) => doc.data()).toList();
     }
     return [];
+  }
+
+  Future<List<Map<String, dynamic>>> obterPedidosFinalizados() async {
+    final user = auth.currentUser;
+    if (user == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final pedidosSnapshot = await firestore
+        .collection('pedidos')
+        .where('email', isEqualTo: user.email)
+        .where('status', isEqualTo: 'finalizado')
+        .get();
+
+    return pedidosSnapshot.docs.map((doc) => doc.data()).toList();
   }
 }

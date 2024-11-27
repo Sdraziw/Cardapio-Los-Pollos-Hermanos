@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_network/image_network.dart';
 import 'package:los_pollos_hermanos/controller/login_controller.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class PerfilView extends StatefulWidget {
   const PerfilView({super.key});
@@ -11,6 +12,7 @@ class PerfilView extends StatefulWidget {
 }
 
 class PerfilViewState extends State<PerfilView> {
+  final AudioPlayer audioPlayer = AudioPlayer();
   final LoginController loginController = LoginController();
   String? email = FirebaseAuth.instance.currentUser?.email;
 
@@ -180,6 +182,7 @@ class PerfilViewState extends State<PerfilView> {
                 textStyle: const TextStyle(fontSize: 18),
               ),
               onPressed: () {
+                iniciarAudioIceCube();
                 LoginController().logout();
 
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -189,7 +192,7 @@ class PerfilViewState extends State<PerfilView> {
                   ),
                 );
 
-                Future.delayed(const Duration(seconds: 1), () {
+                Future.delayed(const Duration(seconds: 2), () {
                   Navigator.pushReplacementNamed(context, 'splash');
                 });
               },
@@ -218,5 +221,24 @@ class PerfilViewState extends State<PerfilView> {
         ],
       ),
     );
+  }
+  Future<void> iniciarAudioIceCube() async {
+    // audioPlayer = AudioPlayer();
+    try {
+      // Carrega o áudio de um URL absoluto para teste
+      await audioPlayer.setSourceUrl('lib/audios/ice-cubes.mp3');
+
+      // Define o volume para 50%
+      await audioPlayer.setVolume(0.5);
+
+      // Define o modo de liberação para repetir o áudio em loop
+      //audioPlayer.setReleaseMode(ReleaseMode.loop);
+
+      // Inicia a reprodução
+      await audioPlayer.resume();
+    } catch (error) {
+      debugPrint('Erro ao carregar áudio: $error');
+      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+    }
   }
 }

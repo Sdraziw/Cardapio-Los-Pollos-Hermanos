@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:los_pollos_hermanos/controller/login_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Para salvar localmente o estado de "Lembre-se de mim"
 import 'dart:math'; // Para gerar cores aleatórias
+import 'package:audioplayers/audioplayers.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
+  
 
   @override
   State<LoginView> createState() => _LoginViewState();
 }
 
 class _LoginViewState extends State<LoginView> {
+  late AudioPlayer audioPlayer = AudioPlayer();
   final formKey = GlobalKey<FormState>();
   Color backgroundColor = const Color(0xFFFFD600);
   final primaryColor = const Color.fromARGB(255, 0, 0, 0);
@@ -283,56 +286,63 @@ class _LoginViewState extends State<LoginView> {
                 setState(() {
                   clickCount++;
                   if (clickCount == 1) {
+                    iniciarAudioAguia();
                     ScaffoldMessenger.of(context).showSnackBar(
                       // Exibe a mensagem na tela
                       // O texto é exibido de acordo com o número de cliques
                       SnackBar(
-                        backgroundColor: Colors.black.withOpacity(0.2),
+                          duration: Duration(seconds: 2),
+                          backgroundColor: Colors.black.withOpacity(0.2),
                           content: Text(
-                        '☼ Sol com sombra?  ${(clickCount)}ª vez que vejo!',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      )),
+                            '☼ Sol com sombra?  ${(clickCount)}ª vez que vejo!',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold),
+                          )),
                     );
                   } else if (clickCount == 2) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: Colors.black.withOpacity(0.2),
+                      SnackBar(
+                        duration: Duration(seconds: 2),
+                          backgroundColor: Colors.black.withOpacity(0.2),
                           content: Text(
-                        '☀ Sol não tem sombra!  ${(clickCount)}ª vez observando!',
-                        style: TextStyle(
-                            fontSize: 17, fontWeight: FontWeight.bold),
-                      )),
+                            '☀ Sol não tem sombra!  ${(clickCount)}ª vez observando!',
+                            style: TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.bold),
+                          )),
                     );
                   } else if (clickCount == 3) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        backgroundColor: Colors.black.withOpacity(0.2),
+                        duration: Duration(seconds: 2),
+                          backgroundColor: Colors.black.withOpacity(0.2),
                           content: Text(
-                        '☀ Sol se movendo ou estou delirando pela ${(clickCount)}ª vez',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold),
-                      )),
+                            '☀ Sol se movendo ou estou delirando pela ${(clickCount)}ª vez',
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold),
+                          )),
                     );
                   } else if (clickCount == 4) {
+                    iniciarAudioVento();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                        duration: Duration(seconds: 3),
+                          backgroundColor: Colors.white.withOpacity(0.2),
                           content: Text(
-                        '◌ Lua!? Noite!? 🌙 Delirando ${(clickCount)}ª vez\nAchei que fosse o calor! Mas não era! É FOME!',
-                        style: TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.bold),
-                      )),
+                            '◌ Lua!? Noite!? 🌙 Delirando ${(clickCount)}ª vez\nAchei que fosse o calor! Mas não era! É FOME!',
+                            style: TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.bold),
+                          )),
                     );
                   } else if (clickCount == 5) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                        duration: Duration(seconds: 1),
+                          backgroundColor: Colors.white.withOpacity(0.2),
                           content: Text(
-                        'Devo estar com fome, pela ${(clickCount)}ª vez, estou delirando',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.bold),
-                      )),
+                            'Devo estar com fome, pela ${(clickCount)}ª vez, estou delirando',
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold),
+                          )),
                     );
                   } else if (clickCount == 6) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -348,8 +358,14 @@ class _LoginViewState extends State<LoginView> {
 
                     Navigator.pushNamed(context, 'promo');
                   } else if (clickCount == 10) {
+                    iniciarAudioAguia();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
+                        duration: Duration(seconds: 1),
+                        behavior: SnackBarBehavior.floating,
+                        margin: EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 10.0),
+                        padding: EdgeInsets.all(5.0),
                         backgroundColor: Colors.yellow.withOpacity(0.2),
                         content: Text(
                           'Olhos de águia! ☽',
@@ -361,6 +377,11 @@ class _LoginViewState extends State<LoginView> {
                   } else if (clickCount == 16) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
+                        duration: Duration(seconds: 1),
+                        behavior: SnackBarBehavior.floating,
+                        margin: EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 10.0),
+                        padding: EdgeInsets.all(10.0),
                         backgroundColor: Colors.white.withOpacity(0.2),
                         content: Text(
                           '☽ Até gostei deste tema noturno! 🌙',
@@ -370,13 +391,41 @@ class _LoginViewState extends State<LoginView> {
                       ),
                     );
                   } else if (clickCount == 37) {
+                    // iniciarAudioAguia(); // ficou demais
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
+                        duration: Duration(seconds: 5),
+                        behavior: SnackBarBehavior.floating,
+                        margin: EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 10.0),
+                        padding: EdgeInsets.all(10.0),
                         backgroundColor: Colors.white.withOpacity(0.2),
-                        content: Text(
-                          'Essa águia está de olho no meu lanche!\nVeja o cupom que já informei o LANCHE2024!',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                        content: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Essa águia está de olho no meu lanche!',
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Veja o cupom promocional que já informei:',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'LANCHE2024',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red, // Cor diferente para o cupom
+                              ),
+                                textAlign: TextAlign.right,
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -447,6 +496,46 @@ class _LoginViewState extends State<LoginView> {
         ],
       ),
     );
+  }
+  /// Método para inicializar e configurar o áudio
+  Future<void> iniciarAudioAguia() async {
+    audioPlayer = AudioPlayer();
+    try {
+      // Carrega o áudio de um URL absoluto para teste
+      await audioPlayer.setSourceUrl('lib/audios/eagle-scream.mp3');
+
+      // Define o volume para 50%
+      await audioPlayer.setVolume(0.3);
+
+      // Define o modo de liberação para repetir o áudio em loop
+      //audioPlayer.setReleaseMode(ReleaseMode.loop);
+
+      // Inicia a reprodução
+      await audioPlayer.resume();
+    } catch (error) {
+      debugPrint('Erro ao carregar áudio: $error');
+      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+    }
+  }
+
+  Future<void> iniciarAudioVento() async {
+    audioPlayer = AudioPlayer();
+    try {
+      // Carrega o áudio de um URL absoluto para teste
+      await audioPlayer.setSourceUrl('lib/audios/wind.mp3');
+
+      // Define o volume para 50%
+      await audioPlayer.setVolume(0.3);
+
+      // Define o modo de liberação para repetir o áudio em loop
+      //audioPlayer.setReleaseMode(ReleaseMode.loop);
+
+      // Inicia a reprodução
+      await audioPlayer.resume();
+    } catch (error) {
+      debugPrint('Erro ao carregar áudio: $error');
+      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+    }
   }
 }
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../services/pedido_service.dart';
 import 'package:logger/logger.dart';
-import '../controller/login_controller.dart'; 
+import '../controller/login_controller.dart';
+//import '../model/itens_model.dart';
 
 PedidoService pedidoService = PedidoService();
+
 class HistoricoView extends StatefulWidget {
   HistoricoView({super.key});
   final LoginController loginController = LoginController();
@@ -38,14 +40,13 @@ class HistoricoViewState extends State<HistoricoView> {
 
   Future<void> carregarHistorico() async {
     try {
-      historico = List<Map<String, dynamic>>.from(await pedidoService.obterHistorico());
+      historico = await pedidoService.obterPedidosFinalizados();
       setState(() {});
     } catch (e) {
       Logger().e('Erro ao carregar histórico: $e');
     }
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,32 +80,70 @@ class HistoricoViewState extends State<HistoricoView> {
           backgroundColor: Color(0xFFFFD600),
         ),
       ),
-        
-      body: historico.isEmpty
-          ? Center(child: Text('Nenhum pedido finalizado encontrado'))
-          : ListView.builder(
-              itemCount: historico.length,
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: pedidoService.buscarItensPedidoFinalizadosStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Erro ao carregar itens: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('Nenhum pedido finalizado encontrado'));
+          } else {
+            final itens = snapshot.data!;
+            final pedidosAgrupados = <String, List<Map<String, dynamic>>>{};
+
+            for (var item in itens) {
+              final numeroPedido = item['numeroPedido'];
+              if (!pedidosAgrupados.containsKey(numeroPedido)) {
+                pedidosAgrupados[numeroPedido] = [];
+              }
+              pedidosAgrupados[numeroPedido]!.add(item);
+            }
+
+            return ListView.builder(
+              itemCount: pedidosAgrupados.length,
               itemBuilder: (context, index) {
-                final pedido = historico[index];
-                final itens = pedido['itens'] as List<Map<String, dynamic>>;
+                final numeroPedido = pedidosAgrupados.keys.elementAt(index);
+                final itensPedido = pedidosAgrupados[numeroPedido]!;
+                final valorTotal = itensPedido.fold(0.0, (sum, item) => sum + item['preco'] * item['quantidade']);
+
                 return ExpansionTile(
-                  title: Text('Pedido #${pedido['numeroPedido']}'),
-                  subtitle: Text('Status: ${pedido['status']}'),
-                  children: itens.map((item) {
-                    return ListTile(
-                      leading: item['imagem'].isNotEmpty
-                          ? (item['imagem'].startsWith('http')
-                              ? Image.network(item['imagem'], width: 50, height: 50)
-                              : Image.asset(item['imagem'], width: 50, height: 50))
-                          : null,
-                      title: Text(item['nome']),
-                      subtitle: Text(item['descricao']),
-                      trailing: Text('R\$ ${item['preco'].toStringAsFixed(2)}'),
-                    );
-                  }).toList(),
+                  title: Text('Pedido #$numeroPedido'),
+                  subtitle: Text('Valor Total: R\$ ${valorTotal.toStringAsFixed(2)}'),
+                  children: [
+                    ...itensPedido.map((item) {
+                      return ListTile(
+                        leading: item['imagem'] != null && item['imagem'].isNotEmpty
+                            ? (item['imagem'].startsWith('http')
+                                ? Image.network(item['imagem'], width: 50, height: 50)
+                                : Image.asset(item['imagem'], width: 50, height: 50))
+                            : null,
+                        title: Text(item['nome']),
+                        subtitle: Text(item['descricao']),
+                        trailing: Text('R\$ ${item['preco'].toStringAsFixed(2)}'),
+                      );
+                    }).toList(),
+                    ListTile(
+                      title: Text('Enviar nota fiscal por e-mail'),
+                      trailing: Icon(Icons.email),
+                      onTap: () async {
+                        String emailUsuario = await widget.loginController.usuarioLogadoEmail();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Nota fiscal enviada para o e-mail $emailUsuario.'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 );
               },
-            ),
+            );
+          }
+        },
+      ),
       bottomNavigationBar: BottomNavigationBar(
         fixedColor: Colors.black,
         backgroundColor: Color(0xFFFFD600),

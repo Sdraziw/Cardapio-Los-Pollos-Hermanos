@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/itens_model.dart';
-import '../controller/login_controller.dart'; // Atualize o caminho conforme necessário
-import '../controller/menu_controller.dart' as custom; // Atualize o caminho conforme necessário
+import '../controller/login_controller.dart';
+import '../controller/menu_controller.dart' as custom;
+import '../services/pedido_service.dart';
 
 class MenuView extends StatefulWidget {
   const MenuView({super.key});
@@ -15,8 +16,25 @@ class MenuView extends StatefulWidget {
 class MenuViewState extends State<MenuView> {
   final LoginController loginController = LoginController();
   final custom.MenuController menuController = custom.MenuController();
+  final PedidoService pedidoService = PedidoService();
+
   String query = '';
   int _currentIndex = 0;
+  int quantidadeItensCarrinho = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    consultarQuantidadeItensCarrinho();
+  }
+
+  consultarQuantidadeItensCarrinho() async {
+    int quantidadeCarrinho =
+        await pedidoService.consultarQuantidadeItensCarrinho();
+    setState(() {
+      quantidadeItensCarrinho = quantidadeCarrinho;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +42,7 @@ class MenuViewState extends State<MenuView> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(60.0),
         child: AppBar(
+          backgroundColor: Color(0xFFFFD600),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -46,7 +65,7 @@ class MenuViewState extends State<MenuView> {
                   }
                 },
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 5),
               Row(
                 children: [
                   Expanded(
@@ -61,7 +80,8 @@ class MenuViewState extends State<MenuView> {
                         },
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.search),
-                          hintText: 'Digite aqui para pesquisar...(itens ou categorias)',
+                          hintText:
+                              'Digite aqui para pesquisar...(itens ou categorias)',
                           hintTextDirection: TextDirection.ltr,
                           hintStyle: TextStyle(fontSize: 12),
                           border: OutlineInputBorder(
@@ -75,19 +95,60 @@ class MenuViewState extends State<MenuView> {
                       ),
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.shopping_cart, color: Colors.black),
-                    onPressed: () {
-                      // Navegar para a tela do carrinho de compras
-                      Navigator.pushNamed(context, 'carrinho');
-                    },
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.shopping_cart, color: Colors.black),
+                        onPressed: () {
+                          // Navegar para a tela do carrinho de compras
+                          Navigator.pushNamed(context, 'carrinho');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Colors.black.withOpacity(0.5),
+                              duration: Duration(seconds: 1),
+                              behavior: SnackBarBehavior.floating,
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 10.0),
+                              padding: EdgeInsets.all(5.0),
+                              content: Text(
+                                'Carrinho de compras $quantidadeItensCarrinho itens',
+                                style: TextStyle(fontSize: 10),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (quantidadeItensCarrinho > 0) // Exibir quantidade de itens no carrinho conceito  BADGE
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            padding: EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              '$quantidadeItensCarrinho',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
-              SizedBox(height: 10),
             ],
           ),
-          backgroundColor: Color(0xFFFFD600),
         ),
       ),
       body: Stack(
@@ -123,9 +184,13 @@ class MenuViewState extends State<MenuView> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
-                      return Center(child: Text('Erro ao carregar dados: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Center(child: Text('Nenhuma categoria encontrada'));
+                      return Center(
+                          child: Text(
+                              'Erro ao carregar dados: ${snapshot.error}'));
+                    } else if (!snapshot.hasData ||
+                        snapshot.data!.docs.isEmpty) {
+                      return Center(
+                          child: Text('Nenhuma categoria encontrada'));
                     }
 
                     List<DocumentSnapshot> categorias = snapshot.data!.docs;
@@ -143,28 +208,41 @@ class MenuViewState extends State<MenuView> {
                               .where('categoria', isEqualTo: categoriaNome)
                               .snapshots(),
                           builder: (context, itemSnapshot) {
-                            if (itemSnapshot.connectionState == ConnectionState.waiting) {
+                            if (itemSnapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return Center(child: CircularProgressIndicator());
                             } else if (itemSnapshot.hasError) {
-                              return Center(child: Text('Erro ao carregar itens: ${itemSnapshot.error}'));
-                            } else if (!itemSnapshot.hasData || itemSnapshot.data!.docs.isEmpty) {
-                              return SizedBox.shrink(); // Não exibe a categoria se não houver itens
+                              return Center(
+                                  child: Text(
+                                      'Erro ao carregar itens: ${itemSnapshot.error}'));
+                            } else if (!itemSnapshot.hasData ||
+                                itemSnapshot.data!.docs.isEmpty) {
+                              return SizedBox
+                                  .shrink(); // Não exibe a categoria se não houver itens
                             }
 
                             List<Prato> itensMenu = itemSnapshot.data!.docs
                                 .map((doc) => Prato.fromDocument(doc))
-                                .where((prato) => prato.nome.toLowerCase().contains(query.toLowerCase()))
+                                .where((prato) => prato.nome
+                                    .toLowerCase()
+                                    .contains(query.toLowerCase()))
                                 .toList();
 
-                            if (itensMenu.isEmpty && !categoriaNome.toLowerCase().contains(query.toLowerCase())) {
-                              return SizedBox.shrink(); // Não exibe a categoria se não houver itens correspondentes à pesquisa
+                            if (itensMenu.isEmpty &&
+                                !categoriaNome
+                                    .toLowerCase()
+                                    .contains(query.toLowerCase())) {
+                              return SizedBox
+                                  .shrink(); // Não exibe a categoria se não houver itens correspondentes à pesquisa
                             }
 
                             return ExpansionTile(
                               leading: categoriaImagem.isNotEmpty
                                   ? (categoriaImagem.startsWith('http')
-                                      ? Image.network(categoriaImagem, width: 200, height: 50)
-                                      : Image.asset(categoriaImagem, width: 70, height: 70))
+                                      ? Image.network(categoriaImagem,
+                                          width: 200, height: 50)
+                                      : Image.asset(categoriaImagem,
+                                          width: 70, height: 70))
                                   : null,
                               title: Text(categoriaNome),
                               subtitle: Text(
@@ -175,12 +253,15 @@ class MenuViewState extends State<MenuView> {
                                 return ListTile(
                                   leading: prato.imagem.isNotEmpty
                                       ? (prato.imagem.startsWith('http')
-                                          ? Image.network(prato.imagem, width: 50, height: 50)
-                                          : Image.asset(prato.imagem, width: 50, height: 50))
+                                          ? Image.network(prato.imagem,
+                                              width: 50, height: 50)
+                                          : Image.asset(prato.imagem,
+                                              width: 50, height: 50))
                                       : null,
                                   title: Text(prato.nome),
                                   subtitle: Text(prato.descricao),
-                                  trailing: Text('R\$ ${prato.preco.toStringAsFixed(2)}'),
+                                  trailing: Text(
+                                      'R\$ ${prato.preco.toStringAsFixed(2)}'),
                                   onTap: () {
                                     // Navegar para a tela de detalhes do prato
                                     Navigator.pushNamed(
@@ -222,7 +303,8 @@ class MenuViewState extends State<MenuView> {
         },
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu🍔'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_long), label: 'Pedidos'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),

@@ -150,4 +150,16 @@ class LoginController {
     var primeiroNome = nomeCompleto.split(' ').first;
     return primeiroNome;
   }
+
+  Future<String> usuarioLogadoEmail() async {
+    var email = "";
+    await FirebaseFirestore.instance
+        .collection('usuarios')
+        .where('uid', isEqualTo: idUsuario())
+        .get()
+        .then((value) {
+      email = value.docs[0].data()['email'] ?? '';
+    });
+    return email;
+  }
 }
