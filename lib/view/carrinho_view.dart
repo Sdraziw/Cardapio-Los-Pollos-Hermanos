@@ -40,7 +40,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
       });
     });
   }
-
+  
   void carregarItensCarrinho() async {
     try {
       final itens = await pedidoService.buscarItensPedidoPorStatus(verificarOuGerarNumeroPedido, 'preparando');
@@ -107,6 +107,54 @@ class CarrinhoViewState extends State<CarrinhoView> {
         ],
       ),
     );
+  }
+
+  Future<String> atualizarstatus(
+      context, String numeroPedido, String status) async {
+    final user = auth.currentUser;
+    if (user != null) {
+      final pedidoRef = firestore.collection('pedidos').doc(numeroPedido);
+      final pedidoDoc = await pedidoRef.get();
+      if (pedidoDoc.exists) {
+        final pedidoData = pedidoDoc.data();
+        if (pedidoData != null && pedidoData['email'] == user.email) {
+          await pedidoRef.update({
+            'status': status,
+            'dataAtualizacao': FieldValue.serverTimestamp(),
+            'numeroPedido': pedidoData['numeroPedido'],
+            'dataCriacao': pedidoData['dataCriacao'],
+            'email': user.email,
+          });
+          return status;
+        } else if (pedidoData != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red.withOpacity(0.5),
+              duration: Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              padding: EdgeInsets.all(10.0),
+              content: Text(
+                  'Else if: Erro ao atualizar status do pedido. #${status}'),
+            ),
+          );
+          return status;
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red.withOpacity(0.5),
+              duration: Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              padding: EdgeInsets.all(10.0),
+              content: Text('Erro ao atualizar status do pedido. #${status}'),
+            ),
+          );
+          return status;
+        }
+      }
+    }
+    return '0';
   }
 
   Future<void> aplicarCodigoPromocional(String codigo) async {
@@ -331,7 +379,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                       SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () async {
-                          await pedidoService.atualizarstatus(context, verificarOuGerarNumeroPedido, 'preparando');
+                          await pedidoService.atualizarStatusPedido(context, verificarOuGerarNumeroPedido,'preparando');
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               backgroundColor: Colors.black.withOpacity(0.5),

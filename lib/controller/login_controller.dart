@@ -27,15 +27,15 @@ class LoginController {
         'email': email,
       });
 
-      sucesso(context, 'Usuário criado com sucesso.');
+      sucesso(context, 'Usuário $email criado com sucesso.');
       Navigator.pop(context);
     }).catchError((e) {
       switch (e.code) {
         case 'email-already-in-use':
-          erro(context, 'O email já foi cadastrado.');
+          erro(context, 'Este email $email já possui cadastro.');
           break;
         case 'invalid-email':
-          erro(context, 'O formato do email é inválido.');
+          erro(context, 'O formato do email $email é inválido.');
           break;
         default:
           erro(context, 'ERRO: ${e.code.toString()}');
@@ -71,10 +71,14 @@ class LoginController {
   // Envia uma mensagem de email para recuperação de senha para
   // um conta de email válida
   //
-  void esqueceuSenha(context, String email) {
+  void esqueceuSenha(BuildContext context, String email) async {
     if (email.isNotEmpty) {
-      auth.sendPasswordResetEmail(email: email);
-      sucesso(context, 'Email enviado com sucesso.');
+      try {
+        await auth.sendPasswordResetEmail(email: email);
+        sucesso(context, 'Email enviado com sucesso para $email.');
+      } catch (e) {
+        erro(context, 'Erro ao enviar email. Verifique se o email está cadastrado.'); // ${e.code.toString()}');
+      }
     } else {
       erro(context, 'Informe o email para recuperar a conta.');
     }

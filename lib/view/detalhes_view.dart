@@ -15,8 +15,10 @@ class DetalhesView extends StatefulWidget {
 
 class _DetalhesViewState extends State<DetalhesView> {
   int quantidade = 1; // Contador para a quantidade do prato
-  final pedidoService = GetIt.I<PedidoService>(); // Acessando o serviço de pedidos
-  final custom.MenuController menuController = custom.MenuController(); // Instância do MenuController
+  final pedidoService =
+      GetIt.I<PedidoService>(); // Acessando o serviço de pedidos
+  final custom.MenuController menuController =
+      custom.MenuController(); // Instância do MenuController
 
   @override
   Widget build(BuildContext context) {
@@ -42,15 +44,18 @@ class _DetalhesViewState extends State<DetalhesView> {
                 dados.imagem,
                 height: 200,
                 width: screenWidth, // Usando a largura da tela para a imagem
-                fit: BoxFit.cover, // A imagem cobre a largura com proporção mantida
-                loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                fit: BoxFit
+                    .cover, // A imagem cobre a largura com proporção mantida
+                loadingBuilder: (BuildContext context, Widget child,
+                    ImageChunkEvent? loadingProgress) {
                   if (loadingProgress == null) {
                     return child;
                   } else {
                     return Center(
                       child: CircularProgressIndicator(
                         value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                (loadingProgress.expectedTotalBytes ?? 1)
                             : null,
                         color: Colors.indigoAccent,
                       ),
@@ -78,11 +83,27 @@ class _DetalhesViewState extends State<DetalhesView> {
                     return ListTile(
                       title: Text(
                         'Descrição',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text(
-                        data['descricao'] ?? '',
-                        style: TextStyle(fontSize: 16),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            data['descricao'] ?? '',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Resumo',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            data['resumo'] ?? '',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
                       ),
                     );
                   }
@@ -110,11 +131,13 @@ class _DetalhesViewState extends State<DetalhesView> {
                     return ListTile(
                       title: Text(
                         'Preço',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
                         'R\$ ${preco.toStringAsFixed(2)}', // Exibindo o preço em formato monetário
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     );
                   }
@@ -141,7 +164,8 @@ class _DetalhesViewState extends State<DetalhesView> {
                               quantidade--;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Quantidade diminuída para $quantidade'),
+                                  content: Text(
+                                      'Quantidade diminuída para $quantidade'),
                                 ),
                               );
                             }
@@ -155,7 +179,8 @@ class _DetalhesViewState extends State<DetalhesView> {
                             quantidade++;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Quantidade aumentada para $quantidade'),
+                                content: Text(
+                                    'Quantidade aumentada para $quantidade'),
                               ),
                             );
                           });
@@ -186,7 +211,8 @@ class _DetalhesViewState extends State<DetalhesView> {
                     double preco = (data['preco'] as num).toDouble();
                     return Text(
                       'Total: R\$ ${(quantidade * preco).toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     );
                   }
                 },
@@ -198,25 +224,27 @@ class _DetalhesViewState extends State<DetalhesView> {
               ElevatedButton(
                 onPressed: () async {
                   // Adiciona o prato ao pedido usando o serviço
-                  await pedidoService.adicionarAoPedido(dados, quantidade, context);
+                  await pedidoService.adicionarAoPedido(
+                      dados, quantidade, context);
 
-                  // Exibir um snackbar ou diálogo confirmando a adição e atualização dos itens no pedido se houver um item com mesmo nome para mesmo usuário no mesmo pedido consultando se há um pedido do usuário logado
+                  /*// Exibir um snackbar ou diálogo confirmando a adição e atualização dos itens no pedido se houver um item com mesmo nome para mesmo usuário no mesmo pedido consultando se há um pedido do usuário logado
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Item adicionado ao pedido'),
                       duration: Duration(seconds: 1),
                     ),
-                  );
-
+                  );*/
 
                   // verificarOuGerarNumeroPedido é uma função que verifica se o usuário já possui um pedido em andamento, caso não tenha, gera um novo número de pedido
-                  String verificarOuGerarNumeroPedido = await pedidoService.verificarOuGerarNumeroPedido();
-
+                  String verificarOuGerarNumeroPedido =
+                      await pedidoService.verificarOuGerarNumeroPedido();
 
                   // Atualiza a lista de itens do pedido no carrinho passando como parâmetro o nome do prato
-                  await pedidoService.buscarItensPedidoPorStatus(verificarOuGerarNumeroPedido,'preparando');
+                  await pedidoService.buscarItensPedidoPorStatus(
+                      verificarOuGerarNumeroPedido, 'preparando');
                   // Atualiza o status do pedido
-                  await pedidoService.atualizarstatus(context, verificarOuGerarNumeroPedido, 'preparando');
+                  await pedidoService.atualizarStatusPedido(
+                      context, verificarOuGerarNumeroPedido, 'preparando');
                   // Atualiza o número do pedido
                   await pedidoService.buscarNumeroPedido();
 
@@ -224,7 +252,8 @@ class _DetalhesViewState extends State<DetalhesView> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => CarrinhoView()), // Navegar para a tela do carrinho
+                        builder: (context) =>
+                            CarrinhoView()), // Navegar para a tela do carrinho
                   );
                 },
                 style: ElevatedButton.styleFrom(
