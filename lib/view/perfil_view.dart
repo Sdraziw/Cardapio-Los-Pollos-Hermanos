@@ -44,12 +44,14 @@ class PerfilViewState extends State<PerfilView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Text('Perfil de Usuário'),
                 Image.network(
                   'lib/images/heads.png',
                   height: 40,
                 ),
-                FutureBuilder<String>(
+                /*FutureBuilder<String>(
                   future: loginController.usuarioLogadoPrimeiroNome(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -67,7 +69,7 @@ class PerfilViewState extends State<PerfilView> {
                       );
                     }
                   },
-                ),
+                ),*/
               ],
             ),
             SizedBox(height: 10),
@@ -147,7 +149,6 @@ class PerfilViewState extends State<PerfilView> {
                     style: const TextStyle(fontSize: 18, color: Colors.black),
                     readOnly: true,
                     initialValue: '••••••••',
-                    obscureText: obscureText_,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
@@ -156,17 +157,14 @@ class PerfilViewState extends State<PerfilView> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      suffixIcon: IconButton(
+                      /*suffixIcon: IconButton(
                         icon: Icon(
                           Icons.edit,
                           color: Colors.black,
                         ),
                         onPressed: () {
-                          setState(() {
-                            obscureText_ = !obscureText_;
-                          });
                         },
-                      ),
+                      ),*/
                     ),
                   );
                 }
@@ -217,7 +215,7 @@ class PerfilViewState extends State<PerfilView> {
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
               icon: Icon(Icons.receipt_long), label: 'Pedidos'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil👤'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
     );

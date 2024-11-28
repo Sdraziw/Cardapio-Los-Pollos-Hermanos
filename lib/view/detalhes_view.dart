@@ -162,12 +162,12 @@ class _DetalhesViewState extends State<DetalhesView> {
                           setState(() {
                             if (quantidade > 1) {
                               quantidade--;
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              /*ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
                                       'Quantidade diminuída para $quantidade'),
                                 ),
-                              );
+                              );*/
                             }
                           });
                         },
@@ -177,12 +177,12 @@ class _DetalhesViewState extends State<DetalhesView> {
                         onPressed: () {
                           setState(() {
                             quantidade++;
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            /*ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
                                     'Quantidade aumentada para $quantidade'),
                               ),
-                            );
+                            );*/
                           });
                         },
                       ),
@@ -249,12 +249,12 @@ class _DetalhesViewState extends State<DetalhesView> {
                   await pedidoService.buscarNumeroPedido();
 
                   // Redireciona para a tela do carrinho
-                  Navigator.push(
+                  /*Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
                             CarrinhoView()), // Navegar para a tela do carrinho
-                  );
+                  );*/
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(300, 50),

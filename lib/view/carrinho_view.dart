@@ -215,7 +215,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                 if (prato.quantidade > 1) {
                                   await adicionarAoPedido(prato, -1);
                                   setState(() {});
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  /*ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       backgroundColor: Colors.red.withOpacity(0.5),
                                       content: Text('Quantidade subtraída.➖'),
@@ -224,7 +224,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                       margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
                                       padding: EdgeInsets.all(10.0),
                                     ),
-                                  );
+                                  );*/
                                 } else {
                                   confirmarRemoverItem(prato);
                                 }
@@ -235,7 +235,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                               onPressed: prato.cupom ? null : () async {
                                 await adicionarAoPedido(prato, 1);
                                 setState(() {});
-                                ScaffoldMessenger.of(context).showSnackBar(
+                                /*ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     backgroundColor: Colors.green.withOpacity(0.5),
                                     content: Text('Quantidade adicionada.➕'),
@@ -244,7 +244,7 @@ class CarrinhoViewState extends State<CarrinhoView> {
                                     margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
                                     padding: EdgeInsets.all(10.0),
                                   ),
-                                );
+                                );*/
                               },
                             ),
                             IconButton(

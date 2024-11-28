@@ -53,6 +53,22 @@ class HistoricoViewState extends State<HistoricoView> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(60.0),
         child: AppBar(
+          
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Histórico de Pedidos'),
+            Image.network(
+              'lib/images/rv_2.png',
+              height: 90,
+            ),
+          ],
+        ),
+        backgroundColor: Color(0xFFFFD600),
+        automaticallyImplyLeading: false,
+      ),
+          
+          /*
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -77,8 +93,8 @@ class HistoricoViewState extends State<HistoricoView> {
               ),
             ],
           ),
-          backgroundColor: Color(0xFFFFD600),
-        ),
+          backgroundColor: Color(0xFFFFD600),*/
+        //),
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: pedidoService.buscarItensPedidoFinalizadosStream(),
@@ -151,7 +167,7 @@ class HistoricoViewState extends State<HistoricoView> {
         onTap: _onTabTapped,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos📦'),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),

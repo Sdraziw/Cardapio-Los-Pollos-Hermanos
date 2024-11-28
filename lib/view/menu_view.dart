@@ -42,11 +42,12 @@ class MenuViewState extends State<MenuView> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(60.0),
         child: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: Color(0xFFFFD600),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FutureBuilder<String>(
+              /*FutureBuilder<String>(
                 future: loginController.usuarioLogadoPrimeiroNome(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -64,14 +65,14 @@ class MenuViewState extends State<MenuView> {
                     );
                   }
                 },
-              ),
+              ),*/
               SizedBox(height: 5),
               Row(
                 children: [
                   Expanded(
                     // campo de pesquisa (lupa)
                     child: SizedBox(
-                      height: 25,
+                      height: 40,
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -80,10 +81,9 @@ class MenuViewState extends State<MenuView> {
                         },
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.search),
-                          hintText:
-                              'Digite aqui para pesquisar...(itens ou categorias)',
+                          hintText: 'Digite aqui para pesquisar...',
                           hintTextDirection: TextDirection.ltr,
-                          hintStyle: TextStyle(fontSize: 12),
+                          hintStyle: TextStyle(fontSize: 14),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(50.0),
                             borderSide: BorderSide.none,
@@ -119,7 +119,8 @@ class MenuViewState extends State<MenuView> {
                           );
                         },
                       ),
-                      if (quantidadeItensCarrinho > 0) // Exibir quantidade de itens no carrinho conceito  BADGE
+                      if (quantidadeItensCarrinho >
+                          0) // Exibir quantidade de itens no carrinho conceito  BADGE
                         Positioned(
                           right: 0,
                           top: 0,
@@ -167,13 +168,58 @@ class MenuViewState extends State<MenuView> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
               child: Container(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withOpacity(0.8),
               ),
             ),
           ),
           // Conteúdo principal
           Column(
             children: [
+              Container(
+                width: double.infinity, // Ocupa toda a largura disponível
+                color: Color(0xFFFFD600), // Cor de fundo do container
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                child: FutureBuilder<String>(
+                  future: loginController.usuarioLogadoPrimeiroNome(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Row(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(width: 10),
+                          Text(
+                            'Carregando usuario...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontFamily: 'CarnevaleeFreakshow',
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text(
+                        'Erro: ${snapshot.error}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    } else {
+                      return Text(
+                        'Bem-vindo, ${snapshot.data}! - Los Pollos Hermanos! MENU',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'CarnevaleeFreakshow',
+                          color: Colors.black,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
@@ -195,87 +241,209 @@ class MenuViewState extends State<MenuView> {
 
                     List<DocumentSnapshot> categorias = snapshot.data!.docs;
 
-                    return ListView(
-                      children: categorias.map((categoriaDoc) {
+                    return ListView.builder(
+                      itemCount: categorias.length,
+                      itemBuilder: (context, categoriaIndex) {
+                        DocumentSnapshot categoriaDoc =
+                            categorias[categoriaIndex];
                         String categoriaNome = categoriaDoc['nome'];
-                        String categoriaDescricao = categoriaDoc['descrição'];
                         String categoriaImagem = categoriaDoc['imagem'];
+                        String categoriaDescricao = categoriaDoc['descrição'];
 
-                        return StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('itens_cardapio')
-                              .where('ativo', isEqualTo: true)
-                              .where('categoria', isEqualTo: categoriaNome)
-                              .snapshots(),
-                          builder: (context, itemSnapshot) {
-                            if (itemSnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            } else if (itemSnapshot.hasError) {
-                              return Center(
-                                  child: Text(
-                                      'Erro ao carregar itens: ${itemSnapshot.error}'));
-                            } else if (!itemSnapshot.hasData ||
-                                itemSnapshot.data!.docs.isEmpty) {
-                              return SizedBox
-                                  .shrink(); // Não exibe a categoria se não houver itens
-                            }
+                        return Column(
+                          children: [
+                            StreamBuilder<QuerySnapshot>(
+                              stream: FirebaseFirestore.instance
+                                  .collection('itens_cardapio')
+                                  .where('ativo', isEqualTo: true)
+                                  .where('categoria', isEqualTo: categoriaNome)
+                                  .snapshots(),
+                              builder: (context, itemSnapshot) {
+                                if (itemSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(
+                                      child: CircularProgressIndicator());
+                                } else if (itemSnapshot.hasError) {
+                                  return Center(
+                                      child: Text(
+                                          'Erro ao carregar itens: ${itemSnapshot.error}'));
+                                } else if (!itemSnapshot.hasData ||
+                                    itemSnapshot.data!.docs.isEmpty) {
+                                  return SizedBox.shrink();
+                                }
 
-                            List<Prato> itensMenu = itemSnapshot.data!.docs
-                                .map((doc) => Prato.fromDocument(doc))
-                                .where((prato) => prato.nome
-                                    .toLowerCase()
-                                    .contains(query.toLowerCase()))
-                                .toList();
+                                List<Prato> itensMenu = itemSnapshot.data!.docs
+                                    .map((doc) => Prato.fromDocument(doc))
+                                    .where((prato) =>
+                                        categoriaNome.toLowerCase().contains(query
+                                            .toLowerCase()) || // Verifica se a categoria corresponde
+                                        prato.nome.toLowerCase().contains(query
+                                            .toLowerCase())) // Ou se algum prato corresponde
+                                    .toList();
 
-                            if (itensMenu.isEmpty &&
-                                !categoriaNome
-                                    .toLowerCase()
-                                    .contains(query.toLowerCase())) {
-                              return SizedBox
-                                  .shrink(); // Não exibe a categoria se não houver itens correspondentes à pesquisa
-                            }
+                                if (itensMenu.isEmpty &&
+                                    !categoriaNome
+                                        .toLowerCase()
+                                        .contains(query.toLowerCase())) {
+                                  return SizedBox
+                                      .shrink(); // Oculta a categoria se nada corresponder
+                                }
 
-                            return ExpansionTile(
-                              leading: categoriaImagem.isNotEmpty
-                                  ? (categoriaImagem.startsWith('http')
-                                      ? Image.network(categoriaImagem,
-                                          width: 200, height: 50)
-                                      : Image.asset(categoriaImagem,
-                                          width: 70, height: 70))
-                                  : null,
-                              title: Text(categoriaNome),
-                              subtitle: Text(
-                                categoriaDescricao,
-                                style: TextStyle(fontSize: 12),
-                              ),
-                              children: itensMenu.map((prato) {
-                                return ListTile(
-                                  leading: prato.imagem.isNotEmpty
-                                      ? (prato.imagem.startsWith('http')
-                                          ? Image.network(prato.imagem,
-                                              width: 50, height: 50)
-                                          : Image.asset(prato.imagem,
-                                              width: 50, height: 50))
-                                      : null,
-                                  title: Text(prato.nome),
-                                  subtitle: Text(prato.descricao),
-                                  trailing: Text(
-                                      'R\$ ${prato.preco.toStringAsFixed(2)}'),
-                                  onTap: () {
-                                    // Navegar para a tela de detalhes do prato
-                                    Navigator.pushNamed(
-                                      context,
-                                      'detalhes',
-                                      arguments: prato,
-                                    );
-                                  },
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Título da categoria
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      child: Row(
+                                        children: [
+                                          if (categoriaImagem.isNotEmpty)
+                                            categoriaImagem.startsWith('http')
+                                                ? Image.network(categoriaImagem,
+                                                    width: 60,
+                                                    height: 60,
+                                                    fit: BoxFit.cover)
+                                                : Image.asset(categoriaImagem,
+                                                    width: 60,
+                                                    height: 60,
+                                                    fit: BoxFit.cover),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  categoriaNome,
+                                                  style: const TextStyle(
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  categoriaDescricao,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                  ),
+                                                  maxLines: 3,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    // Lista de pratos
+                                    ListView.builder(
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      itemCount: itensMenu.length,
+                                      itemBuilder: (context, index) {
+                                        Prato prato = itensMenu[index];
+                                        return Card(
+                                          margin: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 8),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          elevation: 2,
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.pushNamed(
+                                                context,
+                                                'detalhes',
+                                                arguments: prato,
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(10),
+                                              child: Row(
+                                                children: [
+                                                  if (prato.imagem.isNotEmpty)
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: prato.imagem
+                                                              .startsWith(
+                                                                  'http')
+                                                          ? Image.network(
+                                                              prato.imagem,
+                                                              width: 80,
+                                                              height: 80,
+                                                              fit: BoxFit.cover,
+                                                            )
+                                                          : Image.asset(
+                                                              prato.imagem,
+                                                              width: 80,
+                                                              height: 80,
+                                                              fit: BoxFit.cover,
+                                                            ),
+                                                    ),
+                                                  const SizedBox(width: 10),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          prato.nome,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 5),
+                                                        Text(
+                                                          prato.descricao,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 14,
+                                                            color: Colors.grey,
+                                                          ),
+                                                          maxLines: 2,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'R\$ ${prato.preco.toStringAsFixed(2)}',
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      //color: Colors.green,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 );
-                              }).toList(),
-                            );
-                          },
+                              },
+                            ),
+                            // Espaçamento entre as categorias
+                            if (query == '') const SizedBox(height: 50),
+                          ],
                         );
-                      }).toList(),
+                      },
                     );
                   },
                 ),
@@ -302,7 +470,7 @@ class MenuViewState extends State<MenuView> {
           }
         },
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu🍔'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
               icon: Icon(Icons.receipt_long), label: 'Pedidos'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
