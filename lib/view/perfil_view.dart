@@ -215,7 +215,7 @@ class PerfilViewState extends State<PerfilView> {
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
               icon: Icon(Icons.receipt_long), label: 'Pedidos'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil👤'),
         ],
       ),
     );

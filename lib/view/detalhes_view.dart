@@ -4,7 +4,7 @@ import 'package:get_it/get_it.dart';
 import '../model/itens_model.dart';
 import '../services/pedido_service.dart';
 import '../controller/menu_controller.dart' as custom;
-import '../view/carrinho_view.dart';
+import '../view/menu_view.dart';
 
 class DetalhesView extends StatefulWidget {
   const DetalhesView({super.key});
@@ -249,12 +249,12 @@ class _DetalhesViewState extends State<DetalhesView> {
                   await pedidoService.buscarNumeroPedido();
 
                   // Redireciona para a tela do carrinho
-                  /*Navigator.push(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            CarrinhoView()), // Navegar para a tela do carrinho
-                  );*/
+                            MenuView()), // Navegar para a tela do menu
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(300, 50),
