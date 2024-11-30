@@ -118,6 +118,9 @@ class _LoginViewState extends State<LoginView> {
                         color: clickCount >= 4 ? Colors.white : Colors.black,
                       ),
                       decoration: InputDecoration(
+                        prefixIcon: Icon(clickCount >= 4
+                                          ? Icons.email_outlined
+                                          : Icons.email),
                         filled: true,
                         fillColor:
                             clickCount >= 4 ? Colors.black54 : Colors.white,
@@ -149,6 +152,9 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       obscureText: _obscureText,
                       decoration: InputDecoration(
+                        prefixIcon: Icon(clickCount >= 4
+                                          ? Icons.lock_outlined
+                                          : Icons.lock),
                         filled: true,
                         fillColor:
                             clickCount >= 4 ? Colors.black54 : Colors.white,

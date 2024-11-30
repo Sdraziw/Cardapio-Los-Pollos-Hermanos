@@ -31,6 +31,7 @@ class EsqueciSenhaView extends StatelessWidget {
             TextField(
               controller: emailController,
               decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.alternate_email_rounded),
                 labelText: 'E-mail',
                 border: OutlineInputBorder(),
                 filled: true,

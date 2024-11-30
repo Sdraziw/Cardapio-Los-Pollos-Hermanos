@@ -98,29 +98,45 @@ class MenuViewState extends State<MenuView> {
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.shopping_cart, color: Colors.black),
-                        onPressed: () {
-                          // Navegar para a tela do carrinho de compras
-                          Navigator.pushNamed(context, 'carrinho');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: Colors.black.withOpacity(0.5),
-                              duration: Duration(seconds: 1),
-                              behavior: SnackBarBehavior.floating,
-                              margin: EdgeInsets.symmetric(
-                                  horizontal: 20.0, vertical: 10.0),
-                              padding: EdgeInsets.all(5.0),
-                              content: Text(
-                                'Carrinho de compras $quantidadeItensCarrinho itens',
-                                style: TextStyle(fontSize: 10),
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: quantidadeItensCarrinho > 0
+                            ? [Colors.orange, Colors.orangeAccent, Colors.blueAccent]
+                            : [Colors.transparent, Colors.transparent, Colors.transparent],
+                            begin: quantidadeItensCarrinho > 0
+                            ? Alignment.topLeft : Alignment.bottomCenter,
+                            end: quantidadeItensCarrinho > 0
+                            ? Alignment.bottomCenter : Alignment.topRight,
+                          ),
+                        ),
+                        padding: EdgeInsets.all(
+                            8), // Ajuste o padding conforme necessário
+                        child: IconButton(
+                          icon: Icon(Icons.shopping_cart, color: Colors.black),
+                          onPressed: () {
+                            // Navegar para a tela do carrinho de compras
+                            Navigator.pushNamed(context, 'carrinho');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.black.withOpacity(0.5),
+                                duration: Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 20.0, vertical: 10.0),
+                                padding: EdgeInsets.all(5.0),
+                                content: Text(
+                                  'Carrinho de compras $quantidadeItensCarrinho itens',
+                                  style: TextStyle(fontSize: 10),
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
                       if (quantidadeItensCarrinho >
-                          0) // Exibir quantidade de itens no carrinho conceito  BADGE
+                          0) // Exibir quantidade de itens no carrinho conceito BADGE
                         Positioned(
                           right: 0,
                           top: 0,
@@ -470,7 +486,7 @@ class MenuViewState extends State<MenuView> {
           }
         },
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu🍔'),//caractere hamburguer para menu de opções do app 
           BottomNavigationBarItem(
               icon: Icon(Icons.receipt_long), label: 'Pedidos'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),

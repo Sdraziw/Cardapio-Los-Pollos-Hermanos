@@ -167,7 +167,7 @@ class HistoricoViewState extends State<HistoricoView> {
         onTap: _onTabTapped,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos'),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Pedidos📦'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
