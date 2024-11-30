@@ -60,4 +60,5 @@ class DefaultFirebaseOptions {
     authDomain: 'cardapio-los-pollos-hermanos.firebaseapp.com',
     storageBucket: 'cardapio-los-pollos-hermanos.firebasestorage.app',
   );
+
 }
