@@ -48,6 +48,4 @@ flutter:
     - family: CarnevaleeFreakshow
       fonts:
         - asset: lib/fonts/CarnevaleeFreakshow.ttf
-    - family: GAMERA
-      fonts:
-        - asset: lib/fonts/GAMERA.ttf
+

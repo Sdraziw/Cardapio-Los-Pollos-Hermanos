@@ -64,7 +64,7 @@ Future<void> main() async {
     ),
   );
 }
-
+String apiKey = dotenv.env['API_KEY'] ?? '';
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
