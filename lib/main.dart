@@ -56,7 +56,7 @@ Future<void> main() async {
   runApp(
     //home: AuroraAnimation(), // Usa a animação da aurora como tela inicial
     DevicePreview(
-      enabled: false,
+      enabled: true, // false para publicar
       builder: (context) => ChangeNotifierProvider( // provider
         create: (context) => MessageNotifier(),
         child: const MainApp(),
