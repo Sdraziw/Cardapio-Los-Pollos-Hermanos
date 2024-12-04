@@ -27,8 +27,12 @@ import 'dart:ui';
 import 'dart:typed_data';
 import 'package:get_it/get_it.dart';
 import 'package:los_pollos_hermanos/view/rgb_circle.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
+
+  await dotenv.load(fileName: ".env");
+
   // Configure the ChannelBuffers to handle messages
   ChannelBuffers channelBuffers = ChannelBuffers();
   channelBuffers.setListener('flutter/lifecycle', (ByteData? data, PlatformMessageResponseCallback? callback) {
