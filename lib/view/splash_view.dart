@@ -16,13 +16,13 @@ class SplashViewState extends State<SplashView> {
   @override
   void initState() {
     super.initState();
-    // Inicia a configuração de vídeo
-    _iniciarVideo();
+    // Initializes video configuration
+    _initializeVideo();
 
-    // Inicia a configuração do áudio
-    _iniciarAudio();
+    // Initializes audio configuration
+    _initializeAudio();
 
-    // Mostra o SnackBar
+    // Shows the SnackBar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -31,11 +31,10 @@ class SplashViewState extends State<SplashView> {
           content: DefaultTextStyle(
             style: TextStyle(fontSize: 9),
             child: Text(
-              'Que calor, devo estar delirando melhor pedir logo uma bebida bem gelada!\nEstou com sede!\nAinda mais escutando essa música da série!',
+              'It’s so hot, I must be hallucinating. I better order a cold drink right away!\nI’m thirsty!\nEspecially while listening to this series music!',
             ),
           ),
         ),
-        
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -44,15 +43,14 @@ class SplashViewState extends State<SplashView> {
           content: DefaultTextStyle(
             style: TextStyle(fontSize: 9),
             child: Text(
-              'Olhe para esse sol escaldante, estou ficando com sede só de olhar!\n Será que tem uma sombra ou algo para beber por aqui?',
+              'Look at this scorching sun, I’m getting thirsty just looking at it!\nIs there any shade or something to drink around here?',
             ),
           ),
         ),
-        
       );
     });
 
-    // Navega para a próxima tela após 5 segundos
+    // Navigates to the next screen after 7 seconds
     Future.delayed(const Duration(seconds: 7), () {
       if (videoController.value.isInitialized && mounted) {
         Navigator.pushNamed(context, 'login');
@@ -60,60 +58,60 @@ class SplashViewState extends State<SplashView> {
     });
   }
 
-  /// Método para inicializar e configurar o vídeo
-  Future<void> _iniciarVideo() async {
+  /// Method to initialize and configure the video
+  Future<void> _initializeVideo() async {
     videoController = VideoPlayerController.asset('lib/videos/coke.mp4')
       ..initialize().then((_) {
-        setState(() {}); // Atualiza o estado para reconstruir a tela
+        setState(() {}); // Updates the state to rebuild the screen
         videoController.play();
-        //videoController.setLooping(false); // Repetir vídeo em loop
+        // videoController.setLooping(false); // Repeat video in a loop
       }).catchError((error) {
-        debugPrint('Erro ao carregar vídeo: $error');
+        debugPrint('Error loading video: $error');
       });
   }
 
-  /// Método para inicializar e configurar o áudio
-  Future<void> _iniciarAudio() async {
+  /// Method to initialize and configure the audio
+  Future<void> _initializeAudio() async {
     audioPlayer = AudioPlayer();
     try {
-      // Carrega o áudio de um URL absoluto para teste
+      // Loads the audio from an absolute URL for testing
       await audioPlayer.setSourceUrl('lib/audios/breaking_bad.mp3');
 
-      // Define o volume para 50%
+      // Sets the volume to 50%
       await audioPlayer.setVolume(0.3);
 
-      // Define o modo de liberação para repetir o áudio em loop
-      //audioPlayer.setReleaseMode(ReleaseMode.loop);
+      // Sets the release mode to repeat the audio in a loop
+      // audioPlayer.setReleaseMode(ReleaseMode.loop);
 
-      // Inicia a reprodução
+      // Starts playback
       await audioPlayer.resume();
     } catch (error) {
-      debugPrint('Erro ao carregar áudio: $error');
-      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+      debugPrint('Error loading audio: $error');
+      // Add a fallback or a user-friendly error message
     }
   }
 
-  /// Método para parar o áudio
-  Future<void> pararAudio() async {
+  /// Method to stop the audio
+  Future<void> stopAudio() async {
     try {
       await audioPlayer.stop();
     } catch (error) {
-      debugPrint('Erro ao parar áudio: $error');
+      debugPrint('Error stopping audio: $error');
     }
   }
 
   @override
   void dispose() {
-    videoController.dispose(); // Libera o controlador de vídeo
-    pararAudio(); // Para o áudio antes de liberar o controlador
-    audioPlayer.dispose(); // Libera o controlador de áudio
+    videoController.dispose(); // Releases the video controller
+    stopAudio(); // Stops the audio before releasing the controller
+    audioPlayer.dispose(); // Releases the audio controller
     super.dispose();
   }
 
   final String desertImage =
-      'lib/images/deserto1.png'; // Define the path to the desert image
+      'lib/images/desert1.png'; // Defines the path to the desert image
   final Color containerColor =
-      Colors.black.withOpacity(1.0); // Define the container color
+      Colors.black.withOpacity(1.0); // Defines the container color
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +128,7 @@ class SplashViewState extends State<SplashView> {
             child: Text(
               'Los Pollos Hermanos',
               style: TextStyle(
-                fontFamily: 'CarnevaleeFreakshow', // Atualize para o nome da sua fonte
+                fontFamily: 'CarnevaleeFreakshow', // Update to your font name
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -149,16 +147,16 @@ class SplashViewState extends State<SplashView> {
             right: 0,
             bottom: 0,
             child: Container(
-              height: 150, // Altura fixa
+              height: 150, // Fixed height
               decoration: BoxDecoration(
-                color: containerColor, // Usar a cor do container
+                color: containerColor, // Use the container color
                 image: DecorationImage(
-                  image: AssetImage(desertImage), // Caminho da imagem do deserto
-                  fit: BoxFit.cover, // Preenche a largura
+                  image: AssetImage(desertImage), // Path to the desert image
+                  fit: BoxFit.cover, // Fills the width
                 ),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.1), // Cor da borda
-                  width: 3.0, // Largura da borda
+                  color: Colors.white.withOpacity(0.1), // Border color
+                  width: 3.0, // Border width
                 ),
               ),
             ),

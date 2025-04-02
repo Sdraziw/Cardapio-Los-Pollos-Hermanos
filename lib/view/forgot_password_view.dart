@@ -1,20 +1,20 @@
-/* Adicional esqueci minha senha
+/* Adicional Forgot minha Password
 Não solicitado, porém adaptado ao projeto
 */
 
 import 'package:flutter/material.dart';
-import 'package:los_pollos_hermanos/controller/login_controller.dart';
+import 'package:los_pollos_hermanos_en/controller/login_controller.dart';
 
-class EsqueciSenhaView extends StatelessWidget {
+class ForgotPasswordView extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
 
-  EsqueciSenhaView({super.key});
+  ForgotPasswordView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Redefinir Senha'),
+        title: Text('Reset Password'),
         backgroundColor: Color(0xFFFFD600), // Cor da AppBar
       ),
       body: Padding(
@@ -23,7 +23,7 @@ class EsqueciSenhaView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Digite seu e-mail para receber as instruções de redefinição de senha:',
+              'Enter your email to receive password reset instructions:',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
@@ -42,12 +42,12 @@ class EsqueciSenhaView extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 String email = emailController.text;
-                LoginController().esqueceuSenha(context, email);
+                LoginController().ForgotPassword(context, email);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFD600), // Cor do botão
               ),
-              child: Text('Enviar'),
+              child: Text('Send'),
             ),
           ],
         ),

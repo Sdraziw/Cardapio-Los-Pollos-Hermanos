@@ -7,6 +7,6 @@ class MessageNotifier extends ChangeNotifier {
 
   void addMessage(String message) {
     _messages.add(message);
-    notifyListeners(); // Notifica os ouvintes para atualizar a UI
+    notifyListeners(); // Notifies listeners to update the UI
   }
 }

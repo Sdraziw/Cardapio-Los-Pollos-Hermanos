@@ -1,17 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_network/image_network.dart';
-import 'package:los_pollos_hermanos/controller/login_controller.dart';
+import 'package:los_pollos_hermanos_en/controller/login_controller.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-class PerfilView extends StatefulWidget {
-  const PerfilView({super.key});
+class ProfileView extends StatefulWidget {
+  const ProfileView({super.key});
 
   @override
-  State<PerfilView> createState() => PerfilViewState();
+  State<ProfileView> createState() => ProfileViewState();
 }
 
-class PerfilViewState extends State<PerfilView> {
+class ProfileViewState extends State<ProfileView> {
   final AudioPlayer audioPlayer = AudioPlayer();
   final LoginController loginController = LoginController();
   String? email = FirebaseAuth.instance.currentUser?.email;
@@ -27,9 +27,9 @@ class PerfilViewState extends State<PerfilView> {
     if (index == 0) {
       Navigator.pushReplacementNamed(context, 'menu');
     } else if (index == 1) {
-      Navigator.pushReplacementNamed(context, 'historico');
+      Navigator.pushReplacementNamed(context, 'history');
     } else if (index == 2) {
-      Navigator.pushReplacementNamed(context, 'perfil');
+      Navigator.pushReplacementNamed(context, 'profile');
     }
   }
 
@@ -39,40 +39,21 @@ class PerfilViewState extends State<PerfilView> {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Color(0xFFFFD600),
+        backgroundColor: const Color(0xFFFFD600),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Perfil de Usuário'),
+                const Text('User Profile'),
                 Image.network(
                   'lib/images/heads.png',
                   height: 40,
                 ),
-                /*FutureBuilder<String>(
-                  future: loginController.usuarioLogadoPrimeiroNome(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Text('Erro ao carregar dados: ${snapshot.error}');
-                    } else {
-                      return Text(
-                        '\n ${snapshot.data}! PERFIL',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontFamily: 'CarnevaleeFreakshow',
-                          color: Colors.black,
-                        ),
-                      );
-                    }
-                  },
-                ),*/
               ],
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -97,12 +78,12 @@ class PerfilViewState extends State<PerfilView> {
             ),
             const SizedBox(height: 40),
             FutureBuilder<String>(
-              future: loginController.usuarioLogadoNome(),
+              future: loginController.loggedInUserName(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
+                  return const CircularProgressIndicator();
                 } else if (snapshot.hasError) {
-                  return Text('Erro ao carregar o nome');
+                  return const Text('Error loading name');
                 } else {
                   return TextFormField(
                     style: const TextStyle(fontSize: 18, color: Colors.black),
@@ -111,7 +92,7 @@ class PerfilViewState extends State<PerfilView> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      labelText: 'Nome',
+                      labelText: 'Name',
                       labelStyle: const TextStyle(color: Colors.black),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -127,7 +108,7 @@ class PerfilViewState extends State<PerfilView> {
               readOnly: true,
               initialValue: email ?? '',
               decoration: InputDecoration(
-                labelText: 'E-mail',
+                labelText: 'Email',
                 filled: true,
                 fillColor: Colors.white,
                 labelStyle: const TextStyle(color: Colors.black),
@@ -138,12 +119,12 @@ class PerfilViewState extends State<PerfilView> {
             ),
             const SizedBox(height: 20),
             FutureBuilder<String>(
-              future: loginController.usuarioLogadoSenha(),
+              future: loginController.loggedInUserPassword(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
+                  return const CircularProgressIndicator();
                 } else if (snapshot.hasError) {
-                  return Text('Erro ao carregar a senha');
+                  return const Text('Error loading password');
                 } else {
                   return TextFormField(
                     style: const TextStyle(fontSize: 18, color: Colors.black),
@@ -152,19 +133,11 @@ class PerfilViewState extends State<PerfilView> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      labelText: 'Senha',
+                      labelText: 'Password',
                       labelStyle: const TextStyle(color: Colors.black),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      /*suffixIcon: IconButton(
-                        icon: Icon(
-                          Icons.edit,
-                          color: Colors.black,
-                        ),
-                        onPressed: () {
-                        },
-                      ),*/
                     ),
                   );
                 }
@@ -180,13 +153,13 @@ class PerfilViewState extends State<PerfilView> {
                 textStyle: const TextStyle(fontSize: 18),
               ),
               onPressed: () {
-                iniciarAudioIceCube();
+                startIceCubeAudio();
                 LoginController().logout();
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                        'Deslogando...\nDirecionado para a página de Login!'),
+                        'Logging out...\nRedirecting to the Login page!'),
                   ),
                 );
 
@@ -197,7 +170,7 @@ class PerfilViewState extends State<PerfilView> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  Text('Sair'),
+                  Text('Logout'),
                   SizedBox(width: 15),
                   Icon(Icons.logout),
                 ],
@@ -214,29 +187,25 @@ class PerfilViewState extends State<PerfilView> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long), label: 'Pedidos'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil👤'),
+              icon: Icon(Icons.receipt_long), label: 'Orders'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile👤'),
         ],
       ),
     );
   }
-  Future<void> iniciarAudioIceCube() async {
-    // audioPlayer = AudioPlayer();
+
+  Future<void> startIceCubeAudio() async {
     try {
-      // Carrega o áudio de um URL absoluto para teste
+      // Load the audio from an absolute URL for testing
       await audioPlayer.setSourceUrl('lib/audios/ice-cubes.mp3');
 
-      // Define o volume para 50%
+      // Set the volume to 50%
       await audioPlayer.setVolume(0.5);
 
-      // Define o modo de liberação para repetir o áudio em loop
-      //audioPlayer.setReleaseMode(ReleaseMode.loop);
-
-      // Inicia a reprodução
+      // Start playback
       await audioPlayer.resume();
     } catch (error) {
-      debugPrint('Erro ao carregar áudio: $error');
-      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+      debugPrint('Error loading audio: $error');
     }
   }
 }

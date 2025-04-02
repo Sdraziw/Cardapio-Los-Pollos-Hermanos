@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../model/itens_model.dart';
+import '../model/items_model.dart';
+import '../model/category_model.dart';
 import '../controller/login_controller.dart';
 import '../controller/menu_controller.dart' as custom;
-import '../services/pedido_service.dart';
+import '../services/order_service.dart';
 
 class MenuView extends StatefulWidget {
   const MenuView({super.key});
@@ -16,23 +17,24 @@ class MenuView extends StatefulWidget {
 class MenuViewState extends State<MenuView> {
   final LoginController loginController = LoginController();
   final custom.MenuController menuController = custom.MenuController();
-  final PedidoService pedidoService = PedidoService();
+  final OrderService orderService = OrderService();
 
-  String query = '';
+  String searchQuery = '';
   int _currentIndex = 0;
-  int quantidadeItensCarrinho = 0;
+  int cartItemCount = 0;
+  bool invisibleButtonGenerateMenuItems = false;
+
 
   @override
   void initState() {
     super.initState();
-    consultarQuantidadeItensCarrinho();
+    fetchCartItemCount();
   }
 
-  consultarQuantidadeItensCarrinho() async {
-    int quantidadeCarrinho =
-        await pedidoService.consultarQuantidadeItensCarrinho();
+  fetchCartItemCount() async {
+    int cartCount = await orderService.fetchCartItemCount();
     setState(() {
-      quantidadeItensCarrinho = quantidadeCarrinho;
+      cartItemCount = cartCount;
     });
   }
 
@@ -47,41 +49,22 @@ class MenuViewState extends State<MenuView> {
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /*FutureBuilder<String>(
-                future: loginController.usuarioLogadoPrimeiroNome(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Text('Erro ao carregar dados: ${snapshot.error}');
-                  } else {
-                    return Text(
-                      '\nBem-vindo, ${snapshot.data}! -  Los Pollos Hermanos! MENU',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontFamily: 'CarnevaleeFreakshow',
-                        color: Colors.black,
-                      ),
-                    );
-                  }
-                },
-              ),*/
               SizedBox(height: 5),
               Row(
                 children: [
                   Expanded(
-                    // campo de pesquisa (lupa)
+                    // Search field (magnifying glass)
                     child: SizedBox(
                       height: 40,
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
-                            query = value;
+                            searchQuery = value;
                           });
                         },
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.search),
-                          hintText: 'Digite aqui para pesquisar...',
+                          hintText: 'Type here to search...',
                           hintTextDirection: TextDirection.ltr,
                           hintStyle: TextStyle(fontSize: 14),
                           border: OutlineInputBorder(
@@ -102,22 +85,29 @@ class MenuViewState extends State<MenuView> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
-                            colors: quantidadeItensCarrinho > 0
-                            ? [Colors.orange, Colors.orangeAccent, Colors.blueAccent]
-                            : [Colors.transparent, Colors.transparent, Colors.transparent],
-                            begin: quantidadeItensCarrinho > 0
-                            ? Alignment.topLeft : Alignment.bottomCenter,
-                            end: quantidadeItensCarrinho > 0
-                            ? Alignment.bottomCenter : Alignment.topRight,
+                            colors: cartItemCount > 0
+                                ? [Colors.orange, Colors.orangeAccent, Colors.blueAccent]
+                                : [Colors.transparent, Colors.transparent, Colors.transparent],
+                            begin: cartItemCount > 0
+                                ? Alignment.topLeft
+                                : Alignment.bottomCenter,
+                            end: cartItemCount > 0
+                                ? Alignment.bottomCenter
+                                : Alignment.topRight,
                           ),
                         ),
-                        padding: EdgeInsets.all(
-                            8), // Ajuste o padding conforme necessário
+                        padding: EdgeInsets.all(8), // Adjust padding as needed
                         child: IconButton(
                           icon: Icon(Icons.shopping_cart, color: Colors.black),
                           onPressed: () {
-                            // Navegar para a tela do carrinho de compras
-                            Navigator.pushNamed(context, 'carrinho');
+                            // Navigate to the shopping cart screen
+                            Navigator.pushNamed(context, 'cart');
+                            setState(() {
+                              cartItemCount = 0; // Reset the cart item count
+                            });();
+                            // Show a snackbar with the number of items in the cart
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).removeCurrentSnackBar();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 backgroundColor: Colors.black.withOpacity(0.5),
@@ -127,7 +117,21 @@ class MenuViewState extends State<MenuView> {
                                     horizontal: 20.0, vertical: 10.0),
                                 padding: EdgeInsets.all(5.0),
                                 content: Text(
-                                  'Carrinho de compras $quantidadeItensCarrinho itens',
+                                  'Shopping cart $cartItemCount items',
+                                  style: TextStyle(fontSize: 10),
+                                ),
+                              ),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.black.withOpacity(0.5),
+                                duration: Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 20.0, vertical: 10.0),
+                                padding: EdgeInsets.all(5.0),
+                                content: Text(
+                                  'Shopping cart $cartItemCount items',
                                   style: TextStyle(fontSize: 10),
                                 ),
                               ),
@@ -135,8 +139,7 @@ class MenuViewState extends State<MenuView> {
                           },
                         ),
                       ),
-                      if (quantidadeItensCarrinho >
-                          0) // Exibir quantidade de itens no carrinho conceito BADGE
+                      if (cartItemCount > 0) // Display cart item count (badge concept)
                         Positioned(
                           right: 0,
                           top: 0,
@@ -151,7 +154,7 @@ class MenuViewState extends State<MenuView> {
                               minHeight: 16,
                             ),
                             child: Text(
-                              '$quantidadeItensCarrinho',
+                              '$cartItemCount',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -170,7 +173,7 @@ class MenuViewState extends State<MenuView> {
       ),
       body: Stack(
         children: [
-          // Imagem de fundo com opacidade
+          // Background image with opacity
           Positioned.fill(
             child: Image.asset(
               'lib/images/fundo2.png',
@@ -179,7 +182,7 @@ class MenuViewState extends State<MenuView> {
               colorBlendMode: BlendMode.lighten,
             ),
           ),
-          // Filtro de desfoque
+          // Blur filter
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
@@ -188,16 +191,15 @@ class MenuViewState extends State<MenuView> {
               ),
             ),
           ),
-          // Conteúdo principal
+          // Main content
           Column(
             children: [
               Container(
-                width: double.infinity, // Ocupa toda a largura disponível
-                color: Color(0xFFFFD600), // Cor de fundo do container
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                width: double.infinity, // Occupies the entire available width
+                color: Color(0xFFFFD600), // Background color of the container
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 child: FutureBuilder<String>(
-                  future: loginController.usuarioLogadoPrimeiroNome(),
+                  future: loginController.loggedInUserFirstName(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Row(
@@ -205,7 +207,7 @@ class MenuViewState extends State<MenuView> {
                           CircularProgressIndicator(),
                           SizedBox(width: 10),
                           Text(
-                            'Carregando usuario...',
+                            'Loading user...',
                             style: TextStyle(
                               fontSize: 16,
                               fontFamily: 'CarnevaleeFreakshow',
@@ -216,7 +218,7 @@ class MenuViewState extends State<MenuView> {
                       );
                     } else if (snapshot.hasError) {
                       return Text(
-                        'Erro: ${snapshot.error}',
+                        'Error: ${snapshot.error}',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.red,
@@ -225,7 +227,7 @@ class MenuViewState extends State<MenuView> {
                       );
                     } else {
                       return Text(
-                        'Bem-vindo, ${snapshot.data}! - Los Pollos Hermanos! MENU',
+                        'Welcome, ${snapshot.data}! - Los Pollos Hermanos! MENU',
                         style: TextStyle(
                           fontSize: 16,
                           fontFamily: 'CarnevaleeFreakshow',
@@ -239,8 +241,8 @@ class MenuViewState extends State<MenuView> {
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('categorias')
-                      .orderBy('ordem')
+                      .collection('categories')
+                      .orderBy('order')
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -248,31 +250,31 @@ class MenuViewState extends State<MenuView> {
                     } else if (snapshot.hasError) {
                       return Center(
                           child: Text(
-                              'Erro ao carregar dados: ${snapshot.error}'));
+                              'Error loading data: ${snapshot.error}'));
                     } else if (!snapshot.hasData ||
                         snapshot.data!.docs.isEmpty) {
                       return Center(
-                          child: Text('Nenhuma categoria encontrada'));
+                          child: Text('No categories found'));
                     }
 
-                    List<DocumentSnapshot> categorias = snapshot.data!.docs;
+                    List<DocumentSnapshot> categories = snapshot.data!.docs;
 
                     return ListView.builder(
-                      itemCount: categorias.length,
-                      itemBuilder: (context, categoriaIndex) {
-                        DocumentSnapshot categoriaDoc =
-                            categorias[categoriaIndex];
-                        String categoriaNome = categoriaDoc['nome'];
-                        String categoriaImagem = categoriaDoc['imagem'];
-                        String categoriaDescricao = categoriaDoc['descrição'];
+                      itemCount: categories.length,
+                      itemBuilder: (context, categoryIndex) {
+                        DocumentSnapshot categoryDoc =
+                            categories[categoryIndex];
+                        String categoryName = categoryDoc['name'];
+                        String categoryImage = categoryDoc['image'];
+                        String categoryDescription = categoryDoc['description'];
 
                         return Column(
                           children: [
                             StreamBuilder<QuerySnapshot>(
                               stream: FirebaseFirestore.instance
-                                  .collection('itens_cardapio')
-                                  .where('ativo', isEqualTo: true)
-                                  .where('categoria', isEqualTo: categoriaNome)
+                                  .collection('menu_items')
+                                  .where('active', isEqualTo: true)
+                                  .where('category', isEqualTo: categoryName)
                                   .snapshots(),
                               builder: (context, itemSnapshot) {
                                 if (itemSnapshot.connectionState ==
@@ -282,45 +284,45 @@ class MenuViewState extends State<MenuView> {
                                 } else if (itemSnapshot.hasError) {
                                   return Center(
                                       child: Text(
-                                          'Erro ao carregar itens: ${itemSnapshot.error}'));
+                                          'Error loading items: ${itemSnapshot.error}'));
                                 } else if (!itemSnapshot.hasData ||
                                     itemSnapshot.data!.docs.isEmpty) {
                                   return SizedBox.shrink();
                                 }
 
-                                List<Prato> itensMenu = itemSnapshot.data!.docs
-                                    .map((doc) => Prato.fromDocument(doc))
-                                    .where((prato) =>
-                                        categoriaNome.toLowerCase().contains(query
-                                            .toLowerCase()) || // Verifica se a categoria corresponde
-                                        prato.nome.toLowerCase().contains(query
-                                            .toLowerCase())) // Ou se algum prato corresponde
+                                List<Dish> menuItems = itemSnapshot.data!.docs
+                                    .map((doc) => Dish.fromDocument(doc))
+                                    .where((dish) =>
+                                        categoryName.toLowerCase().contains(searchQuery
+                                            .toLowerCase()) || // Checks if the category matches
+                                        dish.name.toLowerCase().contains(searchQuery
+                                            .toLowerCase())) // Or if any dish matches
                                     .toList();
 
-                                if (itensMenu.isEmpty &&
-                                    !categoriaNome
+                                if (menuItems.isEmpty &&
+                                    !categoryName
                                         .toLowerCase()
-                                        .contains(query.toLowerCase())) {
+                                        .contains(searchQuery.toLowerCase())) {
                                   return SizedBox
-                                      .shrink(); // Oculta a categoria se nada corresponder
+                                      .shrink(); // Hides the category if nothing matches
                                 }
 
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Título da categoria
+                                    // Category title
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 16, vertical: 8),
                                       child: Row(
                                         children: [
-                                          if (categoriaImagem.isNotEmpty)
-                                            categoriaImagem.startsWith('http')
-                                                ? Image.network(categoriaImagem,
+                                          if (categoryImage.isNotEmpty)
+                                            categoryImage.startsWith('http')
+                                                ? Image.network(categoryImage,
                                                     width: 60,
                                                     height: 60,
                                                     fit: BoxFit.cover)
-                                                : Image.asset(categoriaImagem,
+                                                : Image.asset(categoryImage,
                                                     width: 60,
                                                     height: 60,
                                                     fit: BoxFit.cover),
@@ -333,14 +335,14 @@ class MenuViewState extends State<MenuView> {
                                                   MainAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  categoriaNome,
+                                                  categoryName,
                                                   style: const TextStyle(
                                                     fontSize: 24,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
                                                 Text(
-                                                  categoriaDescricao,
+                                                  categoryDescription,
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                   ),
@@ -354,14 +356,14 @@ class MenuViewState extends State<MenuView> {
                                         ],
                                       ),
                                     ),
-                                    // Lista de pratos
+                                    // List of dishes
                                     ListView.builder(
                                       physics:
                                           const NeverScrollableScrollPhysics(),
                                       shrinkWrap: true,
-                                      itemCount: itensMenu.length,
+                                      itemCount: menuItems.length,
                                       itemBuilder: (context, index) {
-                                        Prato prato = itensMenu[index];
+                                        Dish dish = menuItems[index];
                                         return Card(
                                           margin: const EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 8),
@@ -374,30 +376,30 @@ class MenuViewState extends State<MenuView> {
                                             onTap: () {
                                               Navigator.pushNamed(
                                                 context,
-                                                'detalhes',
-                                                arguments: prato,
+                                                'details',
+                                                arguments: dish,
                                               );
                                             },
                                             child: Padding(
                                               padding: const EdgeInsets.all(10),
                                               child: Row(
                                                 children: [
-                                                  if (prato.imagem.isNotEmpty)
+                                                  if (dish.image.isNotEmpty)
                                                     ClipRRect(
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               8),
-                                                      child: prato.imagem
+                                                      child: dish.image
                                                               .startsWith(
                                                                   'http')
                                                           ? Image.network(
-                                                              prato.imagem,
+                                                              dish.image,
                                                               width: 80,
                                                               height: 80,
                                                               fit: BoxFit.cover,
                                                             )
                                                           : Image.asset(
-                                                              prato.imagem,
+                                                              dish.image,
                                                               width: 80,
                                                               height: 80,
                                                               fit: BoxFit.cover,
@@ -411,7 +413,7 @@ class MenuViewState extends State<MenuView> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          prato.nome,
+                                                          dish.name,
                                                           style:
                                                               const TextStyle(
                                                             fontSize: 16,
@@ -422,7 +424,7 @@ class MenuViewState extends State<MenuView> {
                                                         const SizedBox(
                                                             height: 5),
                                                         Text(
-                                                          prato.descricao,
+                                                          dish.description,
                                                           style:
                                                               const TextStyle(
                                                             fontSize: 14,
@@ -436,12 +438,11 @@ class MenuViewState extends State<MenuView> {
                                                     ),
                                                   ),
                                                   Text(
-                                                    'R\$ ${prato.preco.toStringAsFixed(2)}',
+                                                    'R\$ ${dish.price.toStringAsFixed(2)}',
                                                     style: const TextStyle(
                                                       fontSize: 16,
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      //color: Colors.green,
                                                     ),
                                                   ),
                                                 ],
@@ -455,8 +456,8 @@ class MenuViewState extends State<MenuView> {
                                 );
                               },
                             ),
-                            // Espaçamento entre as categorias
-                            if (query == '') const SizedBox(height: 50),
+                            // Spacing between categories
+                            if (searchQuery == '') const SizedBox(height: 50),
                           ],
                         );
                       },
@@ -467,6 +468,40 @@ class MenuViewState extends State<MenuView> {
             ],
           ),
         ],
+      ),
+     floatingActionButton: invisibleButtonGenerateMenuItems
+          ? null // Hides the button if invisibleButtonGenerateMenuItems is true
+          : FloatingActionButton(
+              onPressed: () async {
+                final categoriesSnapshot = await FirebaseFirestore.instance.collection('categories').get();
+                if (categoriesSnapshot.docs.isEmpty) {
+                  await generateCategories();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Categories added to Firestore!'),
+                    ),
+                  );
+                } else {
+                  print('Categories already exist.');
+                }
+
+                // Check if menu items exist
+                final itemsSnapshot = await FirebaseFirestore.instance.collection('menu_items').get();
+                if (itemsSnapshot.docs.isEmpty) {
+                  await generateMenuItems();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Menu items added to Firestore!'),
+                    ),
+                  );
+                } else {
+                  invisibleButtonGenerateMenuItems = true; // Set to true if items already exist
+                  setState(() {}); // Refresh the UI to hide the button
+                  print('Menu items already exist.');
+                }
+              },
+        backgroundColor: Color(0xFFFFD600),
+        child: Icon(Icons.add, color: Colors.black),
       ),
       bottomNavigationBar: BottomNavigationBar(
         fixedColor: Colors.black,
@@ -480,16 +515,16 @@ class MenuViewState extends State<MenuView> {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, 'menu');
           } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, 'historico');
+            Navigator.pushReplacementNamed(context, 'history');
           } else if (index == 2) {
-            Navigator.pushReplacementNamed(context, 'perfil');
+            Navigator.pushReplacementNamed(context, 'profile');
           }
         },
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu🍔'),//caractere hamburguer para menu de opções do app 
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu🍔'), // Hamburger character for app menu options
           BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long), label: 'Pedidos'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+              icon: Icon(Icons.receipt_long), label: 'Orders'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

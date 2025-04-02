@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:los_pollos_hermanos/controller/login_controller.dart';
+import 'package:los_pollos_hermanos_en/controller/login_controller.dart';
 
-class CadastroView extends StatefulWidget {
-  const CadastroView({super.key});
+class RegistrationView extends StatefulWidget {
+  const RegistrationView({super.key});
 
   @override
-  State<CadastroView> createState() => _CadastroViewState();
+  State<RegistrationView> createState() => _RegistrationViewState();
 }
 
-class _CadastroViewState extends State<CadastroView> {
+class _RegistrationViewState extends State<RegistrationView> {
   final formKey = GlobalKey<FormState>();
 
   bool _obscureText = true;
   bool _obscureText2 = true;
 
-  final txtNome = TextEditingController();
-  // final txtUsuario = TextEditingController();
+  final txtFullName = TextEditingController();
+  // final txtUsername = TextEditingController();
   final txtEmail = TextEditingController();
-  final txtConfirmaEmail = TextEditingController();
-  final txtSenha = TextEditingController();
-  final txtConfirmaSenha = TextEditingController();
+  final txtConfirmEmail = TextEditingController();
+  final txtPassword = TextEditingController();
+  final txtConfirmPassword = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class _CadastroViewState extends State<CadastroView> {
       backgroundColor: Color(0xFFFFD600),
       appBar: AppBar(
         backgroundColor: Color(0xFFFFD600),
-        title: Text('Cadastro de Usuário'), // Título da tela
+        title: Text('User Registration'), // Screen title
       ),
       body: Container(
         color: const Color(0xFFFFD600),
@@ -38,81 +38,59 @@ class _CadastroViewState extends State<CadastroView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                // Nome Completo
+                // Full Name
                 TextFormField(
-                  controller: txtNome,
+                  controller: txtFullName,
                   style: const TextStyle(fontSize: 18),
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: 'Nome Completo',
+                    labelText: 'Full Name',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Informe seu nome completo';
+                      return 'Please enter your full name';
                     }
                     return null;
                   },
                 ),
                 SizedBox(height: 20),
 
-                // Usuário
-                /*
-                TextFormField(
-                  controller: txtUsuario,
-                  style: const TextStyle(fontSize: 18),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    labelText: 'Usuário',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Informe seu usuário';
-                    }
-                    return null;
-                  },
-                ),
-                */
-
-                // E-mail
+                // Email
                 TextFormField(
                     controller: txtEmail,
                     style: const TextStyle(fontSize: 18),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      labelText: 'E-mail',
+                      labelText: 'Email',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Informe seu e-mail';
+                        return 'Please enter your email';
                       } else if (!RegExp(
-                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',) // Expressão regular para validar e-mail
+                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$') // Regular expression to validate email
                           .hasMatch(value)) {
-                        return 'Formato de e-mail inválido';
+                        return 'Invalid email format';
                       }
                       return null;
                     }),
                 SizedBox(height: 20),
 
-                // Confirmar e-mail
+                // Confirm Email
                 TextFormField(
-                  controller: txtConfirmaEmail,
+                  controller: txtConfirmEmail,
                   style: const TextStyle(fontSize: 18),
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: 'Confirmar e-mail',
+                    labelText: 'Confirm Email',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -121,22 +99,22 @@ class _CadastroViewState extends State<CadastroView> {
                     if (value == null ||
                         value.isEmpty ||
                         value != txtEmail.text) {
-                      return 'Os e-mails não correspondem';
+                      return 'Emails do not match';
                     }
                     return null;
                   },
                 ),
                 SizedBox(height: 20),
 
-                // Senha
+                // Password
                 TextFormField(
-                  controller: txtSenha,
+                  controller: txtPassword,
                   style: const TextStyle(fontSize: 18),
                   obscureText: _obscureText,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: 'Senha',
+                    labelText: 'Password',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -153,24 +131,24 @@ class _CadastroViewState extends State<CadastroView> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Por favor, insira sua senha';
+                      return 'Please enter your password';
                     } else if (value.length < 6) {
-                      return 'A senha precisa ter pelo menos 6 caracteres';
+                      return 'Password must be at least 6 characters long';
                     }
                     return null;
                   },
                 ),
                 SizedBox(height: 20),
 
-                // Confirmar Senha
+                // Confirm Password
                 TextFormField(
-                  controller: txtConfirmaSenha,
+                  controller: txtConfirmPassword,
                   style: const TextStyle(fontSize: 18),
                   obscureText: _obscureText2,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: 'Confirmar Senha',
+                    labelText: 'Confirm Password',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -188,8 +166,8 @@ class _CadastroViewState extends State<CadastroView> {
                   validator: (value) {
                     if (value == null ||
                         value.isEmpty ||
-                        value != txtSenha.text) {
-                      return 'As senhas não correspondem';
+                        value != txtPassword.text) {
+                      return 'Passwords do not match';
                     }
                     return null;
                   },
@@ -205,25 +183,25 @@ class _CadastroViewState extends State<CadastroView> {
                   ),
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
-                      if (txtEmail.text != txtConfirmaEmail.text) {
+                      if (txtEmail.text != txtConfirmEmail.text) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Os e-mails não correspondem')),
+                          SnackBar(content: Text('Emails do not match')),
                         );
-                      } else if (txtSenha.text != txtConfirmaSenha.text) {
+                      } else if (txtPassword.text != txtConfirmPassword.text) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('As senhas não correspondem')),
+                          SnackBar(content: Text('Passwords do not match')),
                         );
                       } else {
-                        LoginController().criarConta(
+                        LoginController().createAccount(
                           context,
-                          txtNome.text,
+                          txtFullName.text,
                           txtEmail.text,
-                          txtSenha.text,
+                          txtPassword.text,
                         );
                       }
                     }
                   },
-                  child: Text('Cadastrar'),
+                  child: Text('Register'),
                 ),
               ],
             ),

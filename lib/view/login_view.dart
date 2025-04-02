@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:los_pollos_hermanos/controller/login_controller.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Para salvar localmente o estado de "Lembre-se de mim"
-import 'dart:math'; // Para gerar cores aleatórias
+import 'package:los_pollos_hermanos_en/controller/login_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // To save the "Remember Me" state locally
+import 'dart:math'; // To generate random colors
 import 'package:audioplayers/audioplayers.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
-  
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -19,7 +18,7 @@ class _LoginViewState extends State<LoginView> {
   final primaryColor = const Color.fromARGB(255, 0, 0, 0);
 
   final txtEmail = TextEditingController();
-  final txtSenha = TextEditingController();
+  final txtPassword = TextEditingController();
 
   bool _rememberMe = false;
   bool _obscureText = true;
@@ -28,35 +27,35 @@ class _LoginViewState extends State<LoginView> {
   @override
   void initState() {
     super.initState();
-    _loadRememberMe(); // Carrega o estado de "Lembre-se de mim"
+    _loadRememberMe(); // Loads the "Remember Me" state
   }
 
-  // Função para carregar o estado de "Lembre-se de mim" e credenciais
+  // Function to load the "Remember Me" state and credentials
   void _loadRememberMe() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _rememberMe = prefs.getBool('rememberMe') ?? false;
       if (_rememberMe) {
         txtEmail.text = prefs.getString('email') ?? '';
-        txtSenha.text = prefs.getString('senha') ?? '';
+        txtPassword.text = prefs.getString('Password') ?? '';
       }
     });
   }
 
-  // Função para salvar o estado de "Lembre-se de mim" e credenciais
+  // Function to save the "Remember Me" state and credentials
   void _saveRememberMe() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool('rememberMe', _rememberMe);
     if (_rememberMe) {
       prefs.setString('email', txtEmail.text);
-      prefs.setString('senha', txtSenha.text);
+      prefs.setString('Password', txtPassword.text);
     } else {
       prefs.remove('email');
-      prefs.remove('senha');
+      prefs.remove('Password');
     }
   }
 
-  // Função para gerar uma cor aleatória
+  // Function to generate a random color
   Color getRandomColor() {
     Random random = Random();
     return Color.fromARGB(
@@ -70,10 +69,10 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     String desertImage = (clickCount >= 4 && clickCount < 10)
-        ? "lib/images/deserto1.png"
+        ? "lib/images/desert1.png"
         : (clickCount >= 38)
             ? "lib/images/giphy.gif"
-            : "lib/images/deserto.png";
+            : "lib/images/desert.png";
 
     Color containerColor = (clickCount >= 4 && clickCount < 10)
         ? const Color.fromARGB(0, 0, 0, 0)
@@ -119,8 +118,8 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       decoration: InputDecoration(
                         prefixIcon: Icon(clickCount >= 4
-                                          ? Icons.email_outlined
-                                          : Icons.email),
+                            ? Icons.email_outlined
+                            : Icons.email),
                         filled: true,
                         fillColor:
                             clickCount >= 4 ? Colors.black54 : Colors.white,
@@ -138,14 +137,14 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Por favor, insira seu e-mail';
+                          return 'Please enter your email';
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
-                      controller: txtSenha,
+                      controller: txtPassword,
                       style: TextStyle(
                         fontSize: 18,
                         color: clickCount >= 4 ? Colors.white : Colors.black,
@@ -153,12 +152,12 @@ class _LoginViewState extends State<LoginView> {
                       obscureText: _obscureText,
                       decoration: InputDecoration(
                         prefixIcon: Icon(clickCount >= 4
-                                          ? Icons.lock_outlined
-                                          : Icons.lock),
+                            ? Icons.lock_outlined
+                            : Icons.lock),
                         filled: true,
                         fillColor:
                             clickCount >= 4 ? Colors.black54 : Colors.white,
-                        labelText: 'Senha',
+                        labelText: 'Password',
                         labelStyle: TextStyle(
                           color: clickCount >= 4 ? Colors.white : Colors.black,
                         ),
@@ -186,7 +185,7 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Informe sua senha';
+                          return 'Please enter your password';
                         }
                         return null;
                       },
@@ -201,13 +200,13 @@ class _LoginViewState extends State<LoginView> {
                             setState(() {
                               _rememberMe = value!;
                             });
-                            _saveRememberMe(); // Salva o estado do checkbox
+                            _saveRememberMe(); // Saves the checkbox state
                           },
                           activeColor: Colors.blue,
                           checkColor: Colors.white,
                         ),
                         Text(
-                          'Lembre de mim',
+                          'Remember Me',
                           style: TextStyle(
                               color: clickCount >= 4
                                   ? Colors.white
@@ -216,10 +215,10 @@ class _LoginViewState extends State<LoginView> {
                         const SizedBox(width: 30),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, 'esqueci_senha');
+                            Navigator.pushNamed(context, 'forgot_password');
                           },
                           child: Text(
-                            "Esqueci a senha",
+                            "Forgot Password",
                             style: TextStyle(
                               fontSize: 13,
                               color:
@@ -256,9 +255,9 @@ class _LoginViewState extends State<LoginView> {
                           LoginController().login(
                             context,
                             txtEmail.text,
-                            txtSenha.text,
+                            txtPassword.text,
                           );
-                          _saveRememberMe(); // Salva as credenciais
+                          _saveRememberMe(); // Saves the credentials
                         }
                       },
                       child: const Text('Login'),
@@ -272,9 +271,9 @@ class _LoginViewState extends State<LoginView> {
                         textStyle: const TextStyle(fontSize: 15),
                       ),
                       onPressed: () {
-                        Navigator.pushNamed(context, 'cadastro');
+                        Navigator.pushNamed(context, 'registration');
                       },
-                      child: const Text('Cadastrar'),
+                      child: const Text('Register'),
                     ),
                     const SizedBox(height: 10),
                   ],
@@ -285,77 +284,80 @@ class _LoginViewState extends State<LoginView> {
           Positioned(
             bottom: clickCount >= 4
                 ? clickCount + 115
-                : clickCount + 80, // Ajuste na posição vertical
+                : clickCount + 80, // Adjust vertical position
             left: MediaQuery.of(context).size.width / 3 - 30 + clickCount * -4,
             child: GestureDetector(
               onTap: () {
                 setState(() {
                   clickCount++;
                   if (clickCount == 1) {
-                    iniciarAudioAguia();
+                    startEagleAudio();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      // Exibe a mensagem na tela
-                      // O texto é exibido de acordo com o número de cliques
                       SnackBar(
-                          duration: Duration(seconds: 2),
-                          backgroundColor: Colors.black.withOpacity(0.2),
-                          content: Text(
-                            '☼ Sol com sombra?  ${(clickCount)}ª vez que vejo!',
-                            style: TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.bold),
-                          )),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: Colors.black.withOpacity(0.2),
+                        content: Text(
+                          '☼ Sun with shadow? ${(clickCount)} time I see it!',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     );
                   } else if (clickCount == 2) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         duration: Duration(seconds: 2),
-                          backgroundColor: Colors.black.withOpacity(0.2),
-                          content: Text(
-                            '☀ Sol não tem sombra!  ${(clickCount)}ª vez observando!',
-                            style: TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.bold),
-                          )),
+                        backgroundColor: Colors.black.withOpacity(0.2),
+                        content: Text(
+                          '☀ Sun has no shadow! ${(clickCount)} time observing!',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     );
                   } else if (clickCount == 3) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         duration: Duration(seconds: 2),
-                          backgroundColor: Colors.black.withOpacity(0.2),
-                          content: Text(
-                            '☀ Sol se movendo ou estou delirando pela ${(clickCount)}ª vez',
-                            style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.bold),
-                          )),
+                        backgroundColor: Colors.black.withOpacity(0.2),
+                        content: Text(
+                          '☀ Sun moving or am I hallucinating for the ${(clickCount)} time',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     );
                   } else if (clickCount == 4) {
-                    iniciarAudioVento();
+                    startWindAudio();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         duration: Duration(seconds: 3),
-                          backgroundColor: Colors.white.withOpacity(0.2),
-                          content: Text(
-                            '◌ Lua!? Noite!? 🌙 Delirando ${(clickCount)}ª vez\nAchei que fosse o calor! Mas não era! É FOME!',
-                            style: TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.bold),
-                          )),
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        content: Text(
+                          '◌ Moon!? Night!? 🌙 Hallucinating ${(clickCount)} time\nI thought it was the heat! But it wasn\'t! It\'s HUNGER!',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     );
                   } else if (clickCount == 5) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         duration: Duration(seconds: 1),
-                          backgroundColor: Colors.white.withOpacity(0.2),
-                          content: Text(
-                            'Devo estar com fome, pela ${(clickCount)}ª vez, estou delirando',
-                            style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.bold),
-                          )),
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        content: Text(
+                          'I must be hungry, for the ${(clickCount)} time, I\'m hallucinating',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     );
                   } else if (clickCount == 6) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         backgroundColor: Colors.green.withOpacity(0.2),
                         content: Text(
-                          'Easter Egg ativado!🍀',
+                          'Easter Egg activated!🍀',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
@@ -364,7 +366,7 @@ class _LoginViewState extends State<LoginView> {
 
                     Navigator.pushNamed(context, 'promo');
                   } else if (clickCount == 10) {
-                    iniciarAudioAguia();
+                    startEagleAudio();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         duration: Duration(seconds: 1),
@@ -374,7 +376,7 @@ class _LoginViewState extends State<LoginView> {
                         padding: EdgeInsets.all(5.0),
                         backgroundColor: Colors.yellow.withOpacity(0.2),
                         content: Text(
-                          'Olhos de águia! ☽',
+                          'Eagle eyes! ☽',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
@@ -390,14 +392,13 @@ class _LoginViewState extends State<LoginView> {
                         padding: EdgeInsets.all(10.0),
                         backgroundColor: Colors.white.withOpacity(0.2),
                         content: Text(
-                          '☽ Até gostei deste tema noturno! 🌙',
+                          '☽ I even liked this night theme! 🌙',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
                     );
                   } else if (clickCount == 37) {
-                    // iniciarAudioAguia(); // ficou demais
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         duration: Duration(seconds: 5),
@@ -411,23 +412,23 @@ class _LoginViewState extends State<LoginView> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Essa águia está de olho no meu lanche!',
+                              'This eagle is eyeing my snack!',
                               style: TextStyle(
                                   fontSize: 12, fontWeight: FontWeight.bold),
                             ),
                             SizedBox(height: 4),
                             Text(
-                              'Veja o cupom promocional que já informei:',
+                              'Check out the promotional coupon I already mentioned:',
                               style: TextStyle(
                                   fontSize: 14, fontWeight: FontWeight.bold),
                             ),
                             SizedBox(height: 4),
                             Text(
-                              'LANCHE2024',
+                              'SNACK2024',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.red, // Cor diferente para o cupom
+                                color: Colors.red, // Different color for the coupon
                               ),
                                 textAlign: TextAlign.right,
                             ),
@@ -440,7 +441,7 @@ class _LoginViewState extends State<LoginView> {
                       SnackBar(
                         backgroundColor: Colors.blue.withOpacity(0.2),
                         content: Text(
-                          'Easter Egg ativado *2! 🍀',
+                          'Easter Egg activated *2! 🍀',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
@@ -453,12 +454,12 @@ class _LoginViewState extends State<LoginView> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 700),
-                curve: Curves.easeInOut, // Suaviza a transição de movimento
+                curve: Curves.easeInOut, // Smooth transition
                 transform: Matrix4.translationValues(0,
-                    clickCount >= 4 ? -20 : 0, 0), // Move o círculo para cima
+                    clickCount >= 4 ? -20 : 0, 0), // Moves the circle up
                 width: clickCount >= 4
                     ? 50
-                    : 97, // Diminui o tamanho após 4 cliques
+                    : 97, // Reduces size after 4 clicks
                 height: clickCount >= 4 ? 50 : 97,
                 decoration: BoxDecoration(
                   color: clickCount >= 4
@@ -488,13 +489,13 @@ class _LoginViewState extends State<LoginView> {
             right: 0,
             bottom: 0,
             child: Container(
-              height: 150, // Altura fixa
+              height: 150, // Fixed height
               decoration: BoxDecoration(
-                color: containerColor, // Usar a cor do container
+                color: containerColor, // Use container color
                 image: DecorationImage(
                   image:
-                      AssetImage(desertImage), // Caminho da imagem do deserto
-                  fit: BoxFit.cover, // Preenche a largura
+                      AssetImage(desertImage), // Desert image path
+                  fit: BoxFit.cover, // Fill width
                 ),
               ),
             ),
@@ -503,49 +504,43 @@ class _LoginViewState extends State<LoginView> {
       ),
     );
   }
-  /// Método para inicializar e configurar o áudio
-  Future<void> iniciarAudioAguia() async {
+
+  /// Method to initialize and configure eagle audio
+  Future<void> startEagleAudio() async {
     audioPlayer = AudioPlayer();
     try {
-      // Carrega o áudio de um URL absoluto para teste
+      // Load audio from an absolute URL for testing
       await audioPlayer.setSourceUrl('lib/audios/eagle-scream.mp3');
 
-      // Define o volume para 50%
+      // Set volume to 50%
       await audioPlayer.setVolume(0.3);
 
-      // Define o modo de liberação para repetir o áudio em loop
-      //audioPlayer.setReleaseMode(ReleaseMode.loop);
-
-      // Inicia a reprodução
+      // Start playback
       await audioPlayer.resume();
     } catch (error) {
-      debugPrint('Erro ao carregar áudio: $error');
-      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+      debugPrint('Error loading audio: $error');
     }
   }
 
-  Future<void> iniciarAudioVento() async {
+  /// Method to initialize and configure wind audio
+  Future<void> startWindAudio() async {
     audioPlayer = AudioPlayer();
     try {
-      // Carrega o áudio de um URL absoluto para teste
+      // Load audio from an absolute URL for testing
       await audioPlayer.setSourceUrl('lib/audios/wind.mp3');
 
-      // Define o volume para 50%
+      // Set volume to 50%
       await audioPlayer.setVolume(0.3);
 
-      // Define o modo de liberação para repetir o áudio em loop
-      //audioPlayer.setReleaseMode(ReleaseMode.loop);
-
-      // Inicia a reprodução
+      // Start playback
       await audioPlayer.resume();
     } catch (error) {
-      debugPrint('Erro ao carregar áudio: $error');
-      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+      debugPrint('Error loading audio: $error');
     }
   }
 }
 
-// Função para realizar logout (incluída no menu ou onde for apropriado)
+// Function to perform logout (included in the menu or where appropriate)
 void logout(BuildContext context) {
   Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
 }

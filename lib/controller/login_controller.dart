@@ -2,95 +2,107 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../view/components/mensagem.dart';
+//import '../services/message_notifier.dart';
+
+void success(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message), backgroundColor: Colors.green),
+  );
+}
+
+void error(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message), backgroundColor: Colors.red),
+  );
+}
 
 class LoginController {
   final FirebaseAuth auth = FirebaseAuth.instance;
 
   //
-  // Criação de um nova conta de usuário
-  // no Firebase Authentication
+  // Create a new user account
+  // in Firebase Authentication
   //
-  void criarConta(context, nome, email, senha) {
+  void createAccount(context, name, email, password) {
     auth
         .createUserWithEmailAndPassword(
       email: email,
-      password: senha,
+      password: password,
     )
         .then((value) {
       //
-      // ARMAZENAR o nome do usuário no Firestore
+      // STORE the user's name in Firestore
       //
-      FirebaseFirestore.instance.collection('usuarios').add({
+      FirebaseFirestore.instance.collection('users').add({
         'uid': value.user!.uid,
-        'nome': nome,
+        'name': name,
         'email': email,
       });
 
-      sucesso(context, 'Usuário $email criado com sucesso.');
+      success(context, 'User $email successfully created.');
       Navigator.pop(context);
     }).catchError((e) {
       switch (e.code) {
         case 'email-already-in-use':
-          erro(context, 'Este email $email já possui cadastro.');
+          error(context, 'This email $email is already registered.');
           break;
         case 'invalid-email':
-          erro(context, 'O formato do email $email é inválido.');
+          error(context, 'The format of the email $email is invalid.');
           break;
         default:
-          erro(context, 'ERRO: ${e.code.toString()}');
+          error(context, 'ERROR: ${e.code.toString()}');
       }
     });
   }
 
   //
   // LOGIN
-  // Efetuar o login de um usuário previamente cadastrado
-  // no serviço Firebase Authentication
+  // Log in a previously registered user
+  // in the Firebase Authentication service
   //
-  void login(context, email, senha) {
+  void login(context, email, password) {
     auth
-        .signInWithEmailAndPassword(email: email, password: senha)
+        .signInWithEmailAndPassword(email: email, password: password)
         .then((value) {
       Navigator.pushReplacementNamed(context, 'menu');
     }).catchError((e) {
       switch (e.code) {
         case 'invalid-email':
-          erro(context, 'E-mail ou Senha incorretos.');
+          error(context, 'Incorrect email or password.');
           break;
         case 'invalid-credential':
-          erro(context, 'E-mail ou Senha incorretos.');
+          error(context, 'Incorrect email or password.');
         default:
-          erro(context, 'ERRO: ${e.code.toString()}');
+          error(context, 'ERROR: ${e.code.toString()}');
       }
     });
   }
 
   //
-  // ESQUECEU A SENHA
-  // Envia uma mensagem de email para recuperação de senha para
-  // um conta de email válida
+  // FORGOT PASSWORD
+  // Sends an email message for password recovery to
+  // a valid email account
   //
-  void esqueceuSenha(BuildContext context, String email) async {
+  void forgotPassword(BuildContext context, String email) async {
     if (email.isNotEmpty) {
       try {
         await auth.sendPasswordResetEmail(email: email);
-        sucesso(context, 'Email enviado com sucesso para $email.');
+        success(context, 'Email successfully sent to $email.');
       } catch (e) {
-        erro(context, 'Erro ao enviar email. Verifique se o email está cadastrado.'); // ${e.code.toString()}');
+        error(context, 'Error sending email. Check if the email is registered.'); // ${e.code.toString()}');
       }
     } else {
-      erro(context, 'Informe o email para recuperar a conta.');
+      error(context, 'Provide the email to recover the account.');
     }
     Navigator.pop(context);
   }
 
-  void redefinirSenha(context, String novaSenha) {
-    if (novaSenha.isNotEmpty) {
-      auth.confirmPasswordReset(code: '', newPassword: novaSenha);
-      sucesso(context, 'Email enviado com sucesso.');
+  void resetPassword(context, String newPassword) {
+    if (newPassword.isNotEmpty) {
+      auth.confirmPasswordReset(code: '', newPassword: newPassword);
+      success(context, 'Password successfully reset.');
     } else {
-      erro(context, 'Informe o email para recuperar a conta.');
+      error(context, 'Provide the email to recover the account.');
     }
     Navigator.pop(context);
   }
@@ -103,63 +115,70 @@ class LoginController {
   }
 
   //
-  // ID do Usuário Logado
+  // Logged-in User ID
   //
-  idUsuario() {
+  idUser() {
     return auth.currentUser!.uid;
   }
 
   //
-  // NOME do Usuário Logado
+  // Logged-in User Name
   //
-  Future<String> usuarioLogadoNome() async {
-    var nome = "";
+  Future<String> loggedInUserName() async {
+    var name = "";
     await FirebaseFirestore.instance
-        .collection('usuarios')
-        .where('uid', isEqualTo: idUsuario())
+        .collection('users')
+        .where('uid', isEqualTo: idUser())
         .get()
         .then((value) {
-      nome = value.docs[0].data()['nome'] ?? '';
+      name = value.docs[0].data()['name'] ?? '';
     });
-    return nome;
+    return name;
   }
 
-  Future<String> usuarioLogadoSenha() async {
-    var senha = "";
+  Future<String> loggedInUserPassword() async {
+    var password = "";
     await FirebaseFirestore.instance
-        .collection('usuarios')
-        .where('uid', isEqualTo: idUsuario())
+        .collection('users')
+        .where('uid', isEqualTo: idUser())
         .get()
         .then((value) {
-      senha = value.docs[0].data()['senha'] ?? '';
+      password = value.docs[0].data()['password'] ?? '';
     });
-    return senha;
+    return password;
   }
 
-  Future<String> usuarioLogadoPrimeiroNome() async {
-    var nomeCompleto = "";
+  Future<String> loggedInUserFirstName() async {
+    var fullName = "";
     await FirebaseFirestore.instance
-        .collection('usuarios')
-        .where('uid', isEqualTo: idUsuario())
+        .collection('users')
+        .where('uid', isEqualTo: idUser())
         .get()
         .then((value) {
-      nomeCompleto = value.docs[0].data()['nome'] ?? '';
+      fullName = value.docs[0].data()['name'] ?? '';
     });
 
-    // Extrair o primeiro nome
-    var primeiroNome = nomeCompleto.split(' ').first;
-    return primeiroNome;
+    // Extract the first name
+    var firstName = fullName.split(' ').first;
+    return firstName;
   }
 
-  Future<String> usuarioLogadoEmail() async {
+  Future<String> loggedInUserEmail() async {
     var email = "";
     await FirebaseFirestore.instance
-        .collection('usuarios')
-        .where('uid', isEqualTo: idUsuario())
+        .collection('users')
+        .where('uid', isEqualTo: idUser())
         .get()
         .then((value) {
       email = value.docs[0].data()['email'] ?? '';
     });
     return email;
+  }
+
+  void ForgotPassword(BuildContext context, String email) {
+    // Add logic to handle password reset, e.g., API call or Firebase integration
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Password reset instructions sent to $email')),
+    );
   }
 }

@@ -4,144 +4,122 @@ import 'package:firebase_auth/firebase_auth.dart';
 class MenuController {
   final FirebaseAuth auth = FirebaseAuth.instance;
 
-  /*// Adicionar categoria ao cardápio (Firestore)
-  Future<void> adicionarCategoria(String nome, String descricao, String imagem, int ordem) async {
-  await firestore.collection('categorias').add({
-    'nome': nome,
-    'descricao': descricao,
-    'imagem': imagem,
-    'ordem': ordem,
-  });
-  }
-  */
-
-  Future<String> nomeCategoria(int ordem) async {
-    var nome = "";
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  Future<String> getCategoryName(int order) async {
+    var name = "";
     await FirebaseFirestore.instance
-      .collection('categorias')
-      .where('ordem', isEqualTo: ordem)
-      .get()
-      .then((value) {
-        if (value.docs.isNotEmpty) {
-          nome = value.docs[0].data()['nome'] ?? '';
-        }
-      });
-    return nome;
+        .collection('categories')
+        .where('order', isEqualTo: order)
+        .get()
+        .then((value) {
+      if (value.docs.isNotEmpty) {
+        name = value.docs[0].data()['name'] ?? '';
+      }
+    });
+    return name;
   }
 
-  Future<int> ordemCategoria(String nome) async {
-    var ordem = 0;
+  Future<int> getCategoryOrder(String name) async {
+    var order = 0;
     await FirebaseFirestore.instance
-      .collection('categorias')
-      .where('nome', isEqualTo: nome)
-      .get()
-      .then((value) {
-        if (value.docs.isNotEmpty) {
-          ordem = value.docs[0].data()['ordem'] ?? 0;
-        }
-      });
-    return ordem;
+        .collection('categories')
+        .where('name', isEqualTo: name)
+        .get()
+        .then((value) {
+      if (value.docs.isNotEmpty) {
+        order = value.docs[0].data()['order'] ?? 0;
+      }
+    });
+    return order;
   }
 
-  /*// Adicionar item ao cardápio (Firestore)
-  Future<void> adicionarItemCardapio(String nome, String descricao, double preco, String imagem, bool ativo, String categoria) async {
-  await firestore.collection('itens_cardapio').add({
-    'nome': nome,
-    'descricao': descricao,
-    'preco': preco,
-    'imagem': imagem,
-    'ativo': ativo,
-    'categoria': categoria,
-  });
-  }*/
-
-  Future<String> itensCardapioNome(categoria) async {
-    var nome = "";
+  Future<String> getMenuItemName(String category) async {
+    var name = "";
     await FirebaseFirestore.instance
-      .collection('itens_cardapio')
-      .where('categoria', isEqualTo: categoria)
-      .get()
-      .then((value){
-        nome = value.docs[0].data()['nome']  ?? '';
-      });
-    return nome;
+        .collection('menu_items')
+        .where('category', isEqualTo: category)
+        .get()
+        .then((value) {
+      name = value.docs[0].data()['name'] ?? '';
+    });
+    return name;
   }
 
-  Future<String> itensCardapioDescricao(nome) async {
-    var descricao = "";
+  Future<String> getMenuItemDescription(String name) async {
+    var description = "";
     await FirebaseFirestore.instance
-      .collection('itens_cardapio')
-      .where('nome', isEqualTo: nome)
-      .get()
-      .then((value){
-        descricao = value.docs[0].data()['descricao']  ?? '';
-      });
-    return descricao;
+        .collection('menu_items')
+        .where('name', isEqualTo: name)
+        .get()
+        .then((value) {
+      description = value.docs[0].data()['description'] ?? '';
+    });
+    return description;
   }
 
-  Future<double> itensCardapioPreco(nome) async {
-    var preco = 0.0;
+  Future<double> getMenuItemPrice(String name) async {
+    var price = 0.0;
     await FirebaseFirestore.instance
-      .collection('itens_cardapio')
-      .where('nome', isEqualTo: nome)
-      .get()
-      .then((value){
-        preco = value.docs[0].data()['preco']  ?? '';
-      });
-    return preco;
+        .collection('menu_items')
+        .where('name', isEqualTo: name)
+        .get()
+        .then((value) {
+      price = value.docs[0].data()['price'] ?? 0.0;
+    });
+    return price;
   }
 
-  Future<String> itensCardapioImagem(nome) async {
-    var imagem = '';
+  Future<String> getMenuItemImage(String name) async {
+    var image = '';
     await FirebaseFirestore.instance
-      .collection('itens_cardapio')
-      .where('nome', isEqualTo: nome)
-      .get()
-      .then((value){
-        imagem = value.docs[0].data()['imagem']  ?? '';
-      });
-    return imagem;
+        .collection('menu_items')
+        .where('name', isEqualTo: name)
+        .get()
+        .then((value) {
+      image = value.docs[0].data()['image'] ?? '';
+    });
+    return image;
   }
 
-  Future<bool> itensCardapioAtivo(String nome) async {
-    bool ativo = false;
+  Future<bool> isMenuItemActive(String name) async {
+    bool active = false;
     await FirebaseFirestore.instance
-      .collection('itens_cardapio')
-      .where('nome', isEqualTo: nome)
-      .get()
-      .then((value) {
-        if (value.docs.isNotEmpty) {
-          ativo = value.docs[0].data()['ativo'] ?? false;
-        }
-      });
-    return ativo;
+        .collection('menu_items')
+        .where('name', isEqualTo: name)
+        .get()
+        .then((value) {
+      if (value.docs.isNotEmpty) {
+        active = value.docs[0].data()['active'] ?? false;
+      }
+    });
+    return active;
   }
 
-  Future<String> obterImagemPorNome(String nome) async {
-    String imagem = '';
+  Future<String> getImageByName(String name) async {
+    String image = '';
     await FirebaseFirestore.instance
-      .collection('itens_cardapio')
-      .where('nome', isEqualTo: nome)
-      .get()
-      .then((value) {
-        if (value.docs.isNotEmpty) {
-          imagem = value.docs[0].data()['imagem'] ?? '';
-        }
-      });
-    return imagem;
+        .collection('menu_items')
+        .where('name', isEqualTo: name)
+        .get()
+        .then((value) {
+      if (value.docs.isNotEmpty) {
+        image = value.docs[0].data()['image'] ?? '';
+      }
+    });
+    return image;
   }
 
-  Future<List<String>> obterItensPorCategoria(String categoria) async {
-    List<String> itens = [];
+  Future<List<String>> getItemsByCategory(String category) async {
+    List<String> items = [];
     await FirebaseFirestore.instance
-      .collection('itens_cardapio')
-      .where('categoria', isEqualTo: categoria)
-      .get()
-      .then((value) {
-        for (var doc in value.docs) {
-          itens.add(doc.data()['nome']);
-        }
-      });
-    return itens;
+        .collection('menu_items')
+        .where('category', isEqualTo: category)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        items.add(doc.data()['name']);
+      }
+    });
+    return items;
   }
 }

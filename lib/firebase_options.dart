@@ -64,6 +64,16 @@ class DefaultFirebaseOptions {
     }
   }
 /*
+  /// The default [FirebaseOptions] for web PORTUGUESE BRAZILIAN version.
+  /// env.
+   
+  API_KEY=AIzaSyC7Z9TjFcEeocGCbEscOuILKCojAYIU4vA
+  APP_ID=1:901751865339:web:09e2bf5498f5111904955e
+  MESSAGING_SENDER_ID=901751865339
+  PROJECT_ID=cardapio-los-pollos-hermanos
+  AUTH_DOMAIN=cardapio-los-pollos-hermanos.firebaseapp.com
+  STORAGE_BUCKET=cardapio-los-pollos-hermanos.firebasestorage.app
+
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyC7Z9TjFcEeocGCbEscOuILKCojAYIU4vA',
     appId: '1:901751865339:web:09e2bf5498f5111904955e',
@@ -72,5 +82,27 @@ class DefaultFirebaseOptions {
     authDomain: 'cardapio-los-pollos-hermanos.firebaseapp.com',
     storageBucket: 'cardapio-los-pollos-hermanos.firebasestorage.app',
   );
+
+  /// The default [FirebaseOptions] for web ENGLISH version. 
+  /// env. 
+  
+  API_KEY=AIzaSyCMs5QIe5cBLk3wmtHS67Ys53ZyprHjwPA
+  APP_ID=1:1066069085654:web:718c6c2e325672b5e32877
+  MESSAGING_SENDER_ID=1066069085654
+  PROJECT_ID=los-pollos-hermanos-restaurant
+  AUTH_DOMAIN=los-pollos-hermanos-restaurant.firebaseapp.com
+  STORAGE_BUCKET=los-pollos-hermanos-restaurant.firebasestorage.app
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: "AIzaSyCMs5QIe5cBLk3wmtHS67Ys53ZyprHjwPA",
+    authDomain: "los-pollos-hermanos-restaurant.firebaseapp.com",
+    projectId: "los-pollos-hermanos-restaurant",
+    storageBucket: "los-pollos-hermanos-restaurant.firebasestorage.app",
+    messagingSenderId: "1066069085654",
+    appId: "1:1066069085654:web:718c6c2e325672b5e32877"
+    );
+    
+};
 */
+
 }

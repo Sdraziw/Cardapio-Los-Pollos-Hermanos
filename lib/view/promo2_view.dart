@@ -3,17 +3,17 @@ import 'package:audioplayers/audioplayers.dart';
 
 class Promo2View extends StatelessWidget {
   final AudioPlayer audioPlayer = AudioPlayer();
-  
+
   Promo2View({super.key});
 
   @override
   Widget build(BuildContext context) {
-    iniciarAudioIceCream();
-    
+    startIceCreamAudio();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('OPA! Eu Tanko!  '),
-        backgroundColor: const Color.fromARGB(255, 2, 82, 8), // Cor do AppBar
+        title: const Text('WOW! I Can Handle It!'),
+        backgroundColor: const Color.fromARGB(255, 2, 82, 8), // AppBar color
       ),
       body: Container(
         width: double.infinity,
@@ -33,7 +33,7 @@ class Promo2View extends StatelessWidget {
           children: [
             const SizedBox(height: 20),
             const Text(
-              'Você encontrou o Easter Egg x2! 🎃👻',
+              'You found the Easter Egg x2! 🎃👻',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
@@ -43,11 +43,11 @@ class Promo2View extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             Image.asset(
-              'lib/images/ice-cream.webp', // Substitua pela imagem de promoção
+              'lib/images/ice-cream.webp', // Replace with the promotion image
               height: 200,
             ),
             const Text(
-              'Sorvete Negresco:\n é feito de leite condensado, leite, biscoitos Negresco, essência de baunilha, ovos, açúcar e creme de leite.\nBem simples e delicioso! 🍦',
+              'Negresco Ice Cream:\nMade with condensed milk, milk, Negresco cookies, vanilla essence, eggs, sugar, and cream.\nSimple and delicious! 🍦',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 7,
@@ -56,7 +56,7 @@ class Promo2View extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             const Text(
-              'Como recompensa, você ganhou uma sobremesa na compra!',
+              'As a reward, you won a dessert with your purchase!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -79,7 +79,7 @@ class Promo2View extends StatelessWidget {
               ),
               child: const Text.rich(
                 TextSpan(
-                  text: 'DELIRIOS DA NOITE!\n\n', // Texto normal
+                  text: 'NIGHT DELIGHTS!\n\n', // Main text
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -87,26 +87,24 @@ class Promo2View extends StatelessWidget {
                   ),
                   children: [
                     TextSpan(
-                      text:
-                          'Cupom promocional:  \n', // Texto da promoção com cor diferente
+                      text: 'Promotional Coupon:  \n', // Promotion text
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.blue, // Cor específica para "PROMO2024"
+                        color: Colors.blue, // Specific color for "PROMO2024"
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    TextSpan(                     
-                      text:
-                          'SOBREMESA2024\n', // Texto da promoção com cor diferente
+                    TextSpan(
+                      text: 'DESSERT2024\n', // Promotion code
                       style: TextStyle(
                         fontSize: 22,
-                        color: Colors.red, // Cor específica para "PROMO2024"
+                        color: Colors.red, // Specific color for the code
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     TextSpan(
                       text:
-                          'Necessário uma compra de outro item qualquer do cardápio. Solicite junto ao carrinho no pedido e irá ganhar a sobremesa extra!',
+                          'Requires the purchase of any other menu item. Request it with your cart order and get the extra dessert for free!',
                     ),
                   ],
                 ),
@@ -115,8 +113,8 @@ class Promo2View extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                // Ação do botão (voltar ao menu, aplicar o cupom, etc.)
-                Navigator.pop(context); // Fecha a tela de promoção
+                // Button action (return to menu, apply the coupon, etc.)
+                Navigator.pop(context); // Closes the promotion screen
                 Navigator.pushNamed(context, 'login');
               },
               style: ElevatedButton.styleFrom(
@@ -129,7 +127,7 @@ class Promo2View extends StatelessWidget {
                 ),
               ),
               child: const Text(
-                'Voltar ao Login',
+                'Back to Login',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -141,23 +139,20 @@ class Promo2View extends StatelessWidget {
       ),
     );
   }
-  Future<void> iniciarAudioIceCream() async {
-    // audioPlayer = AudioPlayer();
+
+  Future<void> startIceCreamAudio() async {
     try {
-      // Carrega o áudio de um URL absoluto para teste
+      // Load the audio from an absolute URL for testing
       await audioPlayer.setSourceUrl('lib/audios/ice-cream-truck.mp3');
 
-      // Define o volume para 50%
+      // Set the volume to 50%
       await audioPlayer.setVolume(0.1);
 
-      // Define o modo de liberação para repetir o áudio em loop
-      //audioPlayer.setReleaseMode(ReleaseMode.loop);
-
-      // Inicia a reprodução
+      // Start playback
       await audioPlayer.resume();
     } catch (error) {
-      debugPrint('Erro ao carregar áudio: $error');
-      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+      debugPrint('Error loading audio: $error');
+      // Add a fallback or a user-friendly error message
     }
   }
 }

@@ -7,13 +7,13 @@ class PromoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    iniciarAudioFrangoParrudo();
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Cê é LOCO cachoeira! '),
-          backgroundColor: Colors.red, // Cor do AppBar
-        ),
-        body: Container(
+    startChickenAudio();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('You’re CRAZY waterfall!'),
+        backgroundColor: Colors.red, // AppBar color
+      ),
+      body: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -31,7 +31,7 @@ class PromoView extends StatelessWidget {
           children: [
             const SizedBox(height: 20),
             const Text(
-              'Você encontrou o Easter Egg 🎃👻!',
+              'You found the Easter Egg 🎃👻!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
@@ -48,11 +48,11 @@ class PromoView extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             Image.asset(
-              'lib/images/promo_image.png', // Substitua pela imagem de promoção
+              'lib/images/promo_image.png', // Replace with the promotion image
               height: 200,
             ),
             const Text(
-              'Hamburguer: Frango Parrudo Empanado, Molho Barbecue\nLanche parrudo 🍔200g',
+              'Burger: Breaded Chicken, Barbecue Sauce\nHearty Burger 🍔200g',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
@@ -61,7 +61,7 @@ class PromoView extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             const Text(
-              'Como recompensa, você ganhou um lanche de brinde na compra!',
+              'As a reward, you won a free burger with your purchase!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -84,7 +84,7 @@ class PromoView extends StatelessWidget {
               ),
               child: const Text.rich(
                 TextSpan(
-                  text: 'DELIRIOS DO DESERTO!\n\n',
+                  text: 'DESERT DELIRIUMS!\n\n',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -92,26 +92,24 @@ class PromoView extends StatelessWidget {
                   ),
                   children: [
                     TextSpan(
-                      text:
-                          'Cupom promocional:  \n', // Texto da promoção com cor diferente
+                      text: 'Promotional Coupon:  \n',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.green, // Cor específica para "PROMO2024"
+                        color: Colors.green,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    TextSpan(                     
-                      text:
-                          'LANCHE2024\n', // Texto da promoção com cor diferente
+                    TextSpan(
+                      text: 'SNACK2024\n',
                       style: TextStyle(
                         fontSize: 22,
-                        color: Colors.red, // Cor específica para "PROMO2024"
+                        color: Colors.red,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     TextSpan(
                       text:
-                          'Necessário uma compra de outro item qualquer do cardápio. Solicite junto ao carrinho no pedido e irá ganhar 1 lanche extra!',
+                          'Requires the purchase of any other menu item. Request it with your cart order and get 1 extra burger for free!',
                     ),
                   ],
                 ),
@@ -120,8 +118,8 @@ class PromoView extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                // Ação do botão (voltar ao menu, aplicar o cupom, etc.)
-                Navigator.pop(context); // Fecha a tela de promoção
+                // Button action (return to menu, apply the coupon, etc.)
+                Navigator.pop(context); // Closes the promotion screen
                 Navigator.pushNamed(context, 'login');
               },
               style: ElevatedButton.styleFrom(
@@ -134,7 +132,7 @@ class PromoView extends StatelessWidget {
                 ),
               ),
               child: const Text(
-                'Voltar ao Login',
+                'Back to Login',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -146,23 +144,20 @@ class PromoView extends StatelessWidget {
       ),
     );
   }
-  Future<void> iniciarAudioFrangoParrudo() async {
-    // audioPlayer = AudioPlayer();
+
+  Future<void> startChickenAudio() async {
     try {
-      // Carrega o áudio de um URL absoluto para teste
+      // Load the audio from an absolute URL for testing
       await audioPlayer.setSourceUrl('lib/audios/chicken-noise.mp3');
 
-      // Define o volume para 50%
+      // Set the volume to 50%
       await audioPlayer.setVolume(0.3);
 
-      // Define o modo de liberação para repetir o áudio em loop
-      //audioPlayer.setReleaseMode(ReleaseMode.loop);
-
-      // Inicia a reprodução
+      // Start playback
       await audioPlayer.resume();
     } catch (error) {
-      debugPrint('Erro ao carregar áudio: $error');
-      // Adicione um fallback ou uma mensagem de erro amigável ao usuário
+      debugPrint('Error loading audio: $error');
+      // Add a fallback or a user-friendly error message
     }
   }
 }

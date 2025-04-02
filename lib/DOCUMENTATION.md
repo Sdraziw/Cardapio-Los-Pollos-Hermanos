@@ -1,19 +1,19 @@
 Projeto Prático (P2)
 
 Objetivo
-Desenvolver um aplicativo mobile utilizando o framework Flutter, que permita aos usuários (clientes) visualizar o cardápio de um restaurante e realizar pedidos. O foco do projeto será a implementação de uma interface simples e funcional, que permita a navegação entre as seções do cardápio e a adição de itens a um pedido. As funcionalidades deverão ser integradas à plataforma de serviços Google Firebase.
+Desenvolver um aplicativo mobile utilizando o framework Flutter, que permita aos usuários (clientes) visualizar o cardápio de um restaurante e realizar pedidos. O foco do projeto será a implementação de uma interface simples e funcional, que permita a navegação entre as seções do cardápio e a adição de items a um pedido. As funcionalidades deverão ser integradas à plataforma de serviços Google Firebase.
 Requisitos Funcionais
 
-RF001 	Autenticação, Criação de Conta e Recuperação de Senha
-	O aplicativo deve integrar suas funcionalidades de Login, Criação de Conta e Recuperação de Senha ao serviço Firebase Authentication.
+RF001 	Autenticação, Criação de Conta e Recuperação de Password
+	O aplicativo deve integrar suas funcionalidades de Login, Criação de Conta e Recuperação de Password ao serviço Firebase Authentication.
 ●	Autenticação (Login): deve garantir que apenas usuários previamente cadastrados tenham acesso às funcionalidades do aplicativos. As mensagens de erro, tais como, formato de email inválido, credenciais de acesso inválidas, entre outras devem ser devidamente tratadas e exibidas para o usuário.
-●	Criação de Conta: Para criação de novas contas, o usuário deve fornecer as seguintes informações: nome, e-mail, senha e confirmação de senha (outras informações também podem ser inseridas caso seja necessário). Os dados a respeito do e-mail e senha serão gerenciados pelo Firebase Authentication, enquanto, o nome deve ser armazenado no Firebase Firestore em uma coleção denominada usuarios.
-●	Recuperação de senha: Utilizar os recursos do Firebase Authentication para enviar o email de recuperação de senha.
+●	Criação de Conta: Para criação de novas contas, o usuário deve fornecer as seguintes informações: nome, e-mail, Password e confirmação de Password (outras informações também podem ser inseridas caso seja necessário). Os dados a respeito do e-mail e Password serão gerenciados pelo Firebase Authentication, enquanto, o nome deve ser armazenado no Firebase Firestore em uma coleção denominada usuarios.
+●	Recuperação de Password: Utilizar os recursos do Firebase Authentication para Send o email de recuperação de Password.
 
 
 
-RF002 	Categorias e Itens do Cardápio
-	Todas as informações utilizadas para visualização do cardápio, bem como os detalhes dos itens deverão ser armazenadas no serviço Firebase Firestore. 
+RF002 	Categorias e items do Cardápio
+	Todas as informações utilizadas para visualização do cardápio, bem como os detalhes dos items deverão ser armazenadas no serviço Firebase Firestore. 
 Para armazenar as informações a respeito das categorias, a coleção deverá utilizar a seguinte estrutura:
 Coleção: categorias
 Campo	Descrição
@@ -39,8 +39,8 @@ Exemplo:
 
 
 
-Os itens que fazem parte do cardápio serão armazenados na coleção itens_cardapio, considerando a seguinte estrutura:
-Coleção: itens_cardapio
+Os items que fazem parte do cardápio serão armazenados na coleção items_cardapio, considerando a seguinte estrutura:
+Coleção: items_cardapio
 Campo	Descrição
 nome	nome do item do cardápio
 descricao	Descrição detalhada do item, incluindo informações sobre ingredientes, preparo, características especiais e quais outras informações relevantes
@@ -74,23 +74,23 @@ Campo	Descrição
 uid	UID do Cliente que está realizando o pedido
 status	Indica do status do pedido: {preparando ou finalizado}
 data_hora	Data e hora do pedido
-itens	Subcoleção que armazena os itens que fazem parte do pedido, incluindo ID do item, o preço e a quantidade.
+items	Subcoleção que armazena os items que fazem parte do pedido, incluindo ID do item, o preço e a quantidade.
 
 Exemplo:
 {
    "uid": "ID do cliente",
    "status": "preparando",
    "data_hora": "01/01/2001 13:10"
-   "itens": [
+   "items": [
       {"item_id": "idItem1", "preco": 45.00, "quantidade": 2},
        {"item_id": "idItem2", "preco": 20.00, "quantidade": 1}
    ],   
 }
 
 Na interface de Resumo do Pedido o usuário poderá:
-●	Alterar as quantidades ou remover itens do pedido
+●	Alterar as quantidades ou remover items do pedido
 ●	Visualizar o total geral do pedido
-●	Confirmar o pedido, em que o status deverá ser alterado de preparando para finalizado. Quando esta ação ocorrer, os itens que fazem parte do resumo do pedido não deverão ser mais exibidos.
+●	Confirmar o pedido, em que o status deverá ser alterado de preparando para finalizado. Quando esta ação ocorrer, os items que fazem parte do resumo do pedido não deverão ser mais exibidos.
 
  
 Requisitos Não-Funcionais
@@ -106,20 +106,20 @@ O que deverá ser entregue?
 
 Critérios de Avaliação
 
-[10%] RF001 Autenticação, Criação de Conta e Recuperação de Senha	Pontuação
+[10%] RF001 Autenticação, Criação de Conta e Recuperação de Password	Pontuação
 ●	Autenticação integrada ao Firebase Authentication.
 ●	Criação de Conta integrada ao Firebase Authentication.
-●	Recuperação de senha integrada ao Firebase Authentication.	
+●	Recuperação de Password integrada ao Firebase Authentication.	
 
-[40%] RF002 Categorias e Itens do Cardápio	Pontuação
+[40%] RF002 Categorias e items do Cardápio	Pontuação
 ●	Os dados das categorias são armazenados na respectiva coleção e exibidos adequadamente no aplicativo.
-●	Os dados dos itens do cardápio são armazenados na respectiva coleção.
-●	A visualização do cardápio é realizada dinamicamente a partir das coleções categorias e itens_cardapio.	
+●	Os dados dos items do cardápio são armazenados na respectiva coleção.
+●	A visualização do cardápio é realizada dinamicamente a partir das coleções categorias e items_cardapio.	
 
 [50%] RF003 Pedido	Pontuação
-●	Os itens do cardápio são devidamente adicionados à coleção de pedidos.
-●	As alterações dos itens que fazem parte do pedido são atualizadas no banco de dados.
-●	As remoções de itens que fazem parte do pedido são replicadas no banco de dados.
+●	Os items do cardápio são devidamente adicionados à coleção de pedidos.
+●	As alterações dos items que fazem parte do pedido são atualizadas no banco de dados.
+●	As remoções de items que fazem parte do pedido são replicadas no banco de dados.
 ●	O cálculo do valor total é realizado corretamente e exibido para o usuário.
 ●	Ao confirmar o pedido, o status é alterado para finalizado.	
 
